@@ -50,6 +50,13 @@
 | 补给运输机 | **Carrier** | 4G/5G 中继 + 跟随导航 + 物资投送 (4 槽位) | 树莓派 4B + STM32F407 |
 | 作业处置机 | **Specialist** | 热成像检测 + 4-DOF 机械臂 + LED 补光 | RK3588 + STM32F407 |
 
+### 三维建模
+
+| Scout (探测先遣机) | Carrier (补给运输机) | Specialist (作业处置机) |
+|:---:|:---:|:---:|
+| ![Scout](docs/images/scout.png) | ![Carrier](docs/images/carrier.png) | ![Specialist](docs/images/specialist.png) |
+| 激光雷达 + 毫米波雷达 | 4槽物资舱 + 4G路由 | 4-DOF机械臂 + 热成像 |
+
 ### 工作流程
 
 ```
