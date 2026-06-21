@@ -1,0 +1,246 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="disaster_rubble">
+    <gravity>0 0 -9.81</gravity>
+
+    <!-- 昏暗应急照明 -->
+    <scene>
+      <ambient>0.18 0.18 0.22 1.0</ambient>
+      <background>0.05 0.05 0.08 1.0</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 15 0.5 -0.3 0</pose>
+      <diffuse>0.4 0.38 0.35 1.0</diffuse>
+      <specular>0.1 0.1 0.1 1.0</specular>
+      <direction>-0.5 0.3 -1.0</direction>
+    </light>
+
+    <!-- 地面: 暗色废墟纹理 -->
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>25 25</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>25 25</size></plane></geometry>
+          <material>
+            <ambient>0.08 0.07 0.07 1</ambient>
+            <diffuse>0.15 0.14 0.14 1</diffuse>
+            <specular>0.01 0.01 0.01 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 边界围墙 -->
+    <model name="wall_north"><static>true</static>
+      <pose>0 10 0.15 0 0 0</pose>
+      <link name="link">
+        <visual name="v"><geometry><box><size>20 0.15 0.30</size></box></geometry>
+          <material><diffuse>0.25 0.22 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>20 0.15 0.30</size></box></geometry></collision>
+      </link>
+    </model>
+    <model name="wall_south"><static>true</static>
+      <pose>0 -10 0.15 0 0 0</pose>
+      <link name="link">
+        <visual name="v"><geometry><box><size>20 0.15 0.30</size></box></geometry>
+          <material><diffuse>0.25 0.22 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>20 0.15 0.30</size></box></geometry></collision>
+      </link>
+    </model>
+    <model name="wall_east"><static>true</static>
+      <pose>10 0 0.15 0 0 0</pose>
+      <link name="link">
+        <visual name="v"><geometry><box><size>0.15 20 0.30</size></box></geometry>
+          <material><diffuse>0.25 0.22 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.15 20 0.30</size></box></geometry></collision>
+      </link>
+    </model>
+    <model name="wall_west"><static>true</static>
+      <pose>-10 0 0.15 0 0 0</pose>
+      <link name="link">
+        <visual name="v"><geometry><box><size>0.15 20 0.30</size></box></geometry>
+          <material><diffuse>0.25 0.22 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.15 20 0.30</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <!-- 中央通道: 约 [-3, 3] x [-2, 2] 区域无障碍 -->
+
+    <!-- 废墟堆: 散落碎石 -->
+    <model name="rubble_01"><static>true</static><pose>4.2 1.8 0.06 0 0 0.3</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.50 0.35 0.12</size></box></geometry>
+        <material><diffuse>0.30 0.26 0.22 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.50 0.35 0.12</size></box></geometry></collision></link></model>
+
+    <model name="rubble_02"><static>true</static><pose>4.5 2.3 0.08 0 0 0.7</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.40 0.30 0.16</size></box></geometry>
+        <material><diffuse>0.28 0.24 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.40 0.30 0.16</size></box></geometry></collision></link></model>
+
+    <model name="rubble_03"><static>true</static><pose>-4.8 3.2 0.05 0 0 0.5</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.55 0.40 0.10</size></box></geometry>
+        <material><diffuse>0.27 0.25 0.21 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.55 0.40 0.10</size></box></geometry></collision></link></model>
+
+    <model name="rubble_04"><static>true</static><pose>-5.2 3.8 0.09 0.2 0.1 0.8</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.35 0.28 0.18</size></box></geometry>
+        <material><diffuse>0.32 0.28 0.24 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.35 0.28 0.18</size></box></geometry></collision></link></model>
+
+    <model name="rubble_05"><static>true</static><pose>5.5 -2.5 0.07 0 0 0.2</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.45 0.35 0.14</size></box></geometry>
+        <material><diffuse>0.29 0.25 0.22 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.45 0.35 0.14</size></box></geometry></collision></link></model>
+
+    <model name="rubble_06"><static>true</static><pose>5.8 -3.0 0.06 0 0.2 0</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.38 0.32 0.12</size></box></geometry>
+        <material><diffuse>0.26 0.23 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.38 0.32 0.12</size></box></geometry></collision></link></model>
+
+    <model name="rubble_07"><static>true</static><pose>-6.0 -3.5 0.10 0.1 0.3 0.4</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.60 0.40 0.20</size></box></geometry>
+        <material><diffuse>0.31 0.27 0.23 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.60 0.40 0.20</size></box></geometry></collision></link></model>
+
+    <model name="rubble_08"><static>true</static><pose>-5.5 -4.0 0.04 0 0.5 0</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.32 0.28 0.08</size></box></geometry>
+        <material><diffuse>0.25 0.22 0.19 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.32 0.28 0.08</size></box></geometry></collision></link></model>
+
+    <model name="rubble_09"><static>true</static><pose>3.8 -4.2 0.08 0 0 0.6</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.48 0.38 0.16</size></box></geometry>
+        <material><diffuse>0.30 0.26 0.22 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.48 0.38 0.16</size></box></geometry></collision></link></model>
+
+    <model name="rubble_10"><static>true</static><pose>3.2 -4.8 0.07 0.3 0 0.9</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.35 0.30 0.14</size></box></geometry>
+        <material><diffuse>0.28 0.24 0.21 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.35 0.30 0.14</size></box></geometry></collision></link></model>
+
+    <model name="rubble_11"><static>true</static><pose>-3.5 6.0 0.09 0 0 0.35</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.52 0.42 0.18</size></box></geometry>
+        <material><diffuse>0.30 0.27 0.23 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.52 0.42 0.18</size></box></geometry></collision></link></model>
+
+    <model name="rubble_12"><static>true</static><pose>-4.0 5.5 0.05 0.2 0 0</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.40 0.35 0.10</size></box></geometry>
+        <material><diffuse>0.27 0.23 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.40 0.35 0.10</size></box></geometry></collision></link></model>
+
+    <model name="rubble_13"><static>true</static><pose>6.5 5.0 0.08 0 0 0.55</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.45 0.38 0.16</size></box></geometry>
+        <material><diffuse>0.29 0.25 0.21 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.45 0.38 0.16</size></box></geometry></collision></link></model>
+
+    <model name="rubble_14"><static>true</static><pose>7.0 5.5 0.11 0 0.3 0.8</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.38 0.32 0.22</size></box></geometry>
+        <material><diffuse>0.32 0.28 0.24 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.38 0.32 0.22</size></box></geometry></collision></link></model>
+
+    <model name="rubble_15"><static>true</static><pose>-7.0 -5.5 0.06 0 0 0.25</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.50 0.40 0.12</size></box></geometry>
+        <material><diffuse>0.28 0.24 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.50 0.40 0.12</size></box></geometry></collision></link></model>
+
+    <model name="rubble_16"><static>true</static><pose>-7.5 6.5 0.07 0.1 0.2 0</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.42 0.36 0.14</size></box></geometry>
+        <material><diffuse>0.26 0.23 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.42 0.36 0.14</size></box></geometry></collision></link></model>
+
+    <model name="rubble_17"><static>true</static><pose>7.5 -6.0 0.10 0.3 0 0.7</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.55 0.35 0.20</size></box></geometry>
+        <material><diffuse>0.30 0.26 0.22 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.55 0.35 0.20</size></box></geometry></collision></link></model>
+
+    <model name="rubble_18"><static>true</static><pose>8.0 3.5 0.05 0 0.6 0.3</pose>
+      <link name="link"><visual name="v"><geometry><box><size>0.35 0.30 0.10</size></box></geometry>
+        <material><diffuse>0.27 0.24 0.21 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.35 0.30 0.10</size></box></geometry></collision></link></model>
+
+    <!-- 倒塌墙体 (长条形倾斜箱体) -->
+    <model name="collapsed_wall_01"><static>true</static>
+      <pose>-6.0 1.5 0.08 0 0.6 0</pose>
+      <link name="link">
+        <visual name="v"><geometry><box><size>2.5 0.30 0.16</size></box></geometry>
+        <material><diffuse>0.35 0.30 0.25 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>2.5 0.30 0.16</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <model name="collapsed_wall_02"><static>true</static>
+      <pose>5.5 -5.0 0.10 0.3 0 0.5</pose>
+      <link name="link">
+        <visual name="v"><geometry><box><size>2.0 0.25 0.20</size></box></geometry>
+        <material><diffuse>0.33 0.28 0.23 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>2.0 0.25 0.20</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <model name="collapsed_wall_03"><static>true</static>
+      <pose>-7.0 -6.0 0.06 0 0 0.8</pose>
+      <link name="link">
+        <visual name="v"><geometry><box><size>2.8 0.22 0.12</size></box></geometry>
+        <material><diffuse>0.34 0.29 0.24 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>2.8 0.22 0.12</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <!-- 幸存者模型 (生命探测目标) 位于废墟旁 -->
+    <model name="survivor_01"><static>true</static>
+      <pose>3.0 4.5 0.02 0 0 0</pose>
+      <link name="body">
+        <visual name="v">
+          <geometry><cylinder><radius>0.15</radius><length>0.60</length></cylinder></geometry>
+          <material><diffuse>0.85 0.25 0.10 1</diffuse></material>
+        </visual>
+        <collision name="c">
+          <geometry><cylinder><radius>0.15</radius><length>0.60</length></cylinder></geometry>
+        </collision>
+      </link>
+      <link name="head">
+        <pose>0 0 0.38 0 0 0</pose>
+        <visual name="v">
+          <geometry><sphere><radius>0.10</radius></sphere></geometry>
+          <material><diffuse>0.90 0.75 0.65 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="head_joint" type="fixed">
+        <parent>body</parent><child>head</child>
+      </joint>
+    </model>
+
+    <model name="survivor_02"><static>true</static>
+      <pose>-5.0 3.8 0.02 0 0 1.2</pose>
+      <link name="body">
+        <visual name="v">
+          <geometry><cylinder><radius>0.15</radius><length>0.60</length></cylinder></geometry>
+          <material><diffuse>0.85 0.25 0.10 1</diffuse></material>
+        </visual>
+        <collision name="c">
+          <geometry><cylinder><radius>0.15</radius><length>0.60</length></cylinder></geometry>
+        </collision>
+      </link>
+      <link name="head">
+        <pose>0 0 0.38 0 0 0</pose>
+        <visual name="v">
+          <geometry><sphere><radius>0.10</radius></sphere></geometry>
+          <material><diffuse>0.90 0.75 0.65 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="head_joint" type="fixed">
+        <parent>body</parent><child>head</child>
+      </joint>
+    </model>
+
+    <!-- 机器人出生点 -->
+    <include><uri>model://scout</uri><name>scout_robot</name><pose>0 0 0.05 0 0 0</pose></include>
+    <include><uri>model://carrier</uri><name>carrier_robot</name><pose>-2 2 0.05 0 0 0</pose></include>
+    <include><uri>model://specialist</uri><name>specialist_robot</name><pose>2 2 0.05 0 0 0</pose></include>
+  </world>
+</sdf>

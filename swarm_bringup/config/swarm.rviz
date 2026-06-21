@@ -1,0 +1,81 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /Map1
+        - /TF1
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Enabled: true
+      Name: Grid
+      Value: true
+    - Class: rviz_default_plugins/Map
+      Enabled: true
+      Name: GlobalMap
+      Topic:
+        Value: /global_map
+      Alpha: 0.7
+      Value: true
+    - Class: rviz_default_plugins/Map
+      Enabled: true
+      Name: LifeMap
+      Topic:
+        Value: /scout/life_map
+      Alpha: 0.6
+      Color Scheme: costmap
+      Value: true
+    - Class: rviz_default_plugins/LaserScan
+      Enabled: true
+      Name: ScoutScan
+      Topic:
+        Value: /scout/scan
+      Color: 255; 50; 50
+      Value: true
+    - Class: rviz_default_plugins/LaserScan
+      Enabled: true
+      Name: SpecScan
+      Topic:
+        Value: /specialist/scan
+      Color: 50; 50; 255
+      Value: true
+    - Class: rviz_default_plugins/Odometry
+      Enabled: true
+      Name: ScoutOdom
+      Topic:
+        Value: /scout/odom
+      Color: 255; 100; 0
+      Value: true
+    - Class: rviz_default_plugins/Odometry
+      Enabled: true
+      Name: CarrierOdom
+      Topic:
+        Value: /carrier/odom
+      Color: 0; 200; 50
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Name: ThermalImage
+      Topic:
+        Value: /specialist/thermal_image
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 40; 40; 40
+    Fixed Frame: map
+    Frame Rate: 20
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /gs/command
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Current View
+      Value: TopDownOrtho (rviz)

@@ -1,0 +1,19 @@
+version: '3.8'
+# Swarm Rescue 地面站 Docker 部署
+# 用法: docker-compose up
+# 访问: http://localhost:5000
+
+services:
+  web_dashboard:
+    image: python:3.12-slim
+    network_mode: host
+    environment:
+      - ROS_DOMAIN_ID=42
+      - ROS_LOCALHOST_ONLY=0
+    working_dir: /app
+    volumes:
+      - ./ground_station:/app/ground_station:ro
+    command: >
+      bash -c "pip install flask flask-socketio &&
+               PYTHONPATH=/app python -m ground_station.web_dashboard"
+    restart: unless-stopped

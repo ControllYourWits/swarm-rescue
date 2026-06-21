@@ -1,0 +1,358 @@
+<?xml version="1.0"?>
+<robot name="scout" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- ═══════════════════════════════════════════════════════════
+       Scout 探测先遣机 — 高细节 URDF
+       尺寸基准: 420x320mm 底盘, 6.5kg, 麦克纳姆轮
+       ═══════════════════════════════════════════════════════════ -->
+
+  <xacro:property name="CL" value="0.42"/>  <!-- chassis length -->
+  <xacro:property name="CW" value="0.32"/>  <!-- chassis width -->
+  <xacro:property name="CH" value="0.18"/>  <!-- chassis height -->
+  <xacro:property name="WR" value="0.048"/> <!-- wheel radius -->
+  <xacro:property name="WW" value="0.028"/> <!-- wheel width -->
+  <xacro:property name="BX" value="0.160"/><!-- half wheelbase X -->
+  <xacro:property name="BY" value="0.140"/><!-- half track Y -->
+  <xacro:property name="M"  value="6.5"/>  <!-- total mass kg -->
+
+  <!-- ── 材质定义 ── -->
+  <material name="scout_body"><color rgba="0.18 0.42 0.82 1.0"/></material>
+  <material name="scout_plate"><color rgba="0.14 0.34 0.70 1.0"/></material>
+  <material name="scout_dark"><color rgba="0.06 0.06 0.08 1.0"/></material>
+  <material name="scout_frame"><color rgba="0.22 0.22 0.24 1.0"/></material>
+  <material name="scout_accent"><color rgba="0.95 0.75 0.10 1.0"/></material>
+  <material name="scout_lens"><color rgba="0.15 0.15 0.20 1.0"/></material>
+  <material name="scout_tire"><color rgba="0.12 0.12 0.12 1.0"/></material>
+  <material name="scout_hub"><color rgba="0.55 0.55 0.58 1.0"/></material>
+  <material name="scout_led_front"><color rgba="0.95 0.95 0.85 1.0"/></material>
+  <material name="scout_led_rear"><color rgba="0.90 0.15 0.10 1.0"/></material>
+
+  <!-- ── 底盘主体: 下层底板 + 上层箱体 + 圆角过渡 ── -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
+      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
+      <material name="scout_body"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
+      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
+      <mass value="${M}"/>
+      <inertia ixx="0.08" ixy="0" ixz="0" iyy="0.12" iyz="0" izz="0.15"/>
+    </inertial>
+  </link>
+
+  <!-- 底盘加强边框 (侧面护板) -->
+  <link name="skirt_left">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="${CL*0.85} 0.012 0.06"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="skirt_left_j" type="fixed">
+    <parent link="base_link"/><child link="skirt_left"/>
+    <origin xyz="0 ${CW/2+0.005} ${CH*0.35}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="skirt_right">
+    <visual>
+      <geometry><box size="${CL*0.85} 0.012 0.06"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="skirt_right_j" type="fixed">
+    <parent link="base_link"/><child link="skirt_right"/>
+    <origin xyz="0 ${-CW/2-0.005} ${CH*0.35}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 上层电子舱盖 (微凸) -->
+  <link name="top_cover">
+    <visual>
+      <origin xyz="-0.02 0 0" rpy="0 0 0"/>
+      <geometry><box size="${CL*0.55} ${CW*0.75} 0.025"/></geometry>
+      <material name="scout_plate"/>
+    </visual>
+  </link>
+  <joint name="top_cover_j" type="fixed">
+    <parent link="base_link"/><child link="top_cover"/>
+    <origin xyz="0 0 ${CH+0.012}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 通风栅格 (电子舱散热) -->
+  <link name="vent_grille">
+    <visual>
+      <geometry><box size="0.08 0.10 0.003"/></geometry>
+      <material name="scout_dark"/>
+    </visual>
+  </link>
+  <joint name="vent_grille_j" type="fixed">
+    <parent link="top_cover"/><child link="vent_grille"/>
+    <origin xyz="-0.06 0 0.014" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ── 前保险杠 ── -->
+  <link name="front_bumper">
+    <visual>
+      <geometry><box size="0.025 ${CW+0.02} 0.045"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="front_bumper_j" type="fixed">
+    <parent link="base_link"/><child link="front_bumper"/>
+    <origin xyz="${CL/2+0.01} 0 ${CH*0.4}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 前保险杠加强筋 -->
+  <link name="front_bumper_top">
+    <visual>
+      <geometry><box size="0.015 ${CW*0.6} 0.008"/></geometry>
+      <material name="scout_accent"/>
+    </visual>
+  </link>
+  <joint name="front_bumper_top_j" type="fixed">
+    <parent link="front_bumper"/><child link="front_bumper_top"/>
+    <origin xyz="0 0 0.028" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ── 后保险杠 ── -->
+  <link name="rear_bumper">
+    <visual>
+      <geometry><box size="0.020 ${CW*0.8} 0.035"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="rear_bumper_j" type="fixed">
+    <parent link="base_link"/><child link="rear_bumper"/>
+    <origin xyz="${-CL/2-0.008} 0 ${CH*0.35}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ── 前大灯 (左右各一) ── -->
+  <xacro:macro name="headlight" params="side y_off">
+    <link name="headlight_${side}">
+      <visual>
+        <geometry><cylinder radius="0.012" length="0.008"/></geometry>
+        <material name="scout_led_front"/>
+      </visual>
+    </link>
+    <joint name="headlight_${side}_j" type="fixed">
+      <parent link="front_bumper"/><child link="headlight_${side}"/>
+      <origin xyz="0.015 ${y_off} 0" rpy="0 1.5708 0"/>
+    </joint>
+  </xacro:macro>
+  <xacro:headlight side="l" y_off="${CW*0.35}"/>
+  <xacro:headlight side="r" y_off="${-CW*0.35}"/>
+
+  <!-- ── 尾灯 (左右各一) ── -->
+  <xacro:macro name="taillight" params="side y_off">
+    <link name="taillight_${side}">
+      <visual>
+        <geometry><box size="0.006 0.020 0.015"/></geometry>
+        <material name="scout_led_rear"/>
+      </visual>
+    </link>
+    <joint name="taillight_${side}_j" type="fixed">
+      <parent link="rear_bumper"/><child link="taillight_${side}"/>
+      <origin xyz="-0.012 ${y_off} 0" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+  <xacro:taillight side="l" y_off="${CW*0.30}"/>
+  <xacro:taillight side="r" y_off="${-CW*0.30}"/>
+
+  <!-- ── RPLidar A1 塔架 ── -->
+  <!-- 塔柱 -->
+  <link name="lidar_tower">
+    <visual>
+      <geometry><cylinder radius="0.018" length="0.06"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="lidar_tower_j" type="fixed">
+    <parent link="base_link"/><child link="lidar_tower"/>
+    <origin xyz="0.06 0 ${CH+0.03}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 雷达底座 (安装法兰) -->
+  <link name="lidar_flange">
+    <visual>
+      <geometry><cylinder radius="0.035" length="0.006"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="lidar_flange_j" type="fixed">
+    <parent link="lidar_tower"/><child link="lidar_flange"/>
+    <origin xyz="0 0 0.032" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 雷达本体 (RPLidar A1 圆柱) -->
+  <link name="lidar_link">
+    <visual>
+      <geometry><cylinder radius="0.038" length="0.025"/></geometry>
+      <material name="scout_dark"/>
+    </visual>
+  </link>
+  <joint name="lidar_joint" type="fixed">
+    <parent link="lidar_flange"/><child link="lidar_link"/>
+    <origin xyz="0 0 0.016" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 雷达顶部玻璃窗口 -->
+  <link name="lidar_window">
+    <visual>
+      <geometry><cylinder radius="0.030" length="0.003"/></geometry>
+      <material name="scout_lens"/>
+    </visual>
+  </link>
+  <joint name="lidar_window_j" type="fixed">
+    <parent link="lidar_link"/><child link="lidar_window"/>
+    <origin xyz="0 0 0.014" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ── 毫米波雷达 (AWR1642, 前方安装) ── -->
+  <link name="radar_housing">
+    <visual>
+      <geometry><box size="0.065 0.045 0.012"/></geometry>
+      <material name="scout_dark"/>
+    </visual>
+  </link>
+  <joint name="radar_housing_j" type="fixed">
+    <parent link="base_link"/><child link="radar_housing"/>
+    <origin xyz="${CL/2-0.01} 0 ${CH*0.55}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 雷达天线阵列 (PCB 上的金属条) -->
+  <link name="radar_antenna">
+    <visual>
+      <geometry><box size="0.002 0.035 0.008"/></geometry>
+      <material name="scout_hub"/>
+    </visual>
+  </link>
+  <joint name="radar_antenna_j" type="fixed">
+    <parent link="radar_housing"/><child link="radar_antenna"/>
+    <origin xyz="0.034 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ── UWB 标签 (顶部小方块) ── -->
+  <link name="uwb_tag">
+    <visual>
+      <geometry><box size="0.025 0.025 0.008"/></geometry>
+      <material name="scout_accent"/>
+    </visual>
+  </link>
+  <joint name="uwb_tag_j" type="fixed">
+    <parent link="base_link"/><child link="uwb_tag"/>
+    <origin xyz="-0.10 0 ${CH+0.004}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ── 麦克纳姆轮 (带轮毂+轮胎+滚轮视觉) ── -->
+  <xacro:macro name="mecanum_wheel" params="name x y">
+    <!-- 轮胎外圈 -->
+    <joint name="${name}_joint" type="continuous">
+      <parent link="base_link"/><child link="${name}_link"/>
+      <origin xyz="${x} ${y} -${WR+0.008}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+    <link name="${name}_link">
+      <visual>
+        <geometry><cylinder radius="${WR}" length="${WW}"/></geometry>
+        <material name="scout_tire"/>
+      </visual>
+      <collision>
+        <geometry><cylinder radius="${WR}" length="${WW}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.15"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0002"/>
+      </inertial>
+    </link>
+
+    <!-- 轮毂 (亮金属色中心盘) -->
+    <link name="${name}_hub">
+      <visual>
+        <geometry><cylinder radius="${WR*0.45}" length="${WW+0.004}"/></geometry>
+        <material name="scout_hub"/>
+      </visual>
+    </link>
+    <joint name="${name}_hub_j" type="fixed">
+      <parent link="${name}_link"/><child link="${name}_hub"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <!-- 悬臂支架 (连接底盘到轮轴) -->
+    <link name="${name}_bracket">
+      <visual>
+        <geometry><box size="0.015 0.015 ${WR*1.8}"/></geometry>
+        <material name="scout_frame"/>
+      </visual>
+    </link>
+    <joint name="${name}_bracket_j" type="fixed">
+      <parent link="base_link"/><child link="${name}_bracket"/>
+      <origin xyz="${x} ${y} -${WR*0.5}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:mecanum_wheel name="fl" x="${BX}"  y="${BY}"/>
+  <xacro:mecanum_wheel name="fr" x="${BX}"  y="${-BY}"/>
+  <xacro:mecanum_wheel name="rl" x="${-BX}" y="${BY}"/>
+  <xacro:mecanum_wheel name="rr" x="${-BX}" y="${-BY}"/>
+
+  <!-- ── Gazebo 专属材质 & 插件 ── -->
+  <gazebo reference="base_link">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+  <gazebo reference="lidar_link">
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+  <gazebo reference="scout_tire">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo>
+    <plugin name="scout_mecanum" filename="libgazebo_ros_diff_drive.so">
+      <ros><namespace>scout</namespace></ros>
+      <update_rate>100</update_rate>
+      <left_joint>fl_joint rl_joint</left_joint>
+      <right_joint>fr_joint rr_joint</right_joint>
+      <wheel_separation>${2*BY}</wheel_separation>
+      <wheel_diameter>${2*WR}</wheel_diameter>
+      <max_wheel_torque>5.0</max_wheel_torque>
+      <max_wheel_acceleration>2.0</max_wheel_acceleration>
+      <command_topic>cmd_vel</command_topic>
+      <odometry_topic>odom</odometry_topic>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <publish_odom_tf>true</publish_odom_tf>
+    </plugin>
+
+    <plugin name="scout_lidar" filename="libgazebo_ros_ray_sensor.so">
+      <ros><namespace>scout</namespace></ros>
+      <update_rate>10</update_rate>
+      <sensor>
+        <type>ray</type>
+        <pose>0.06 0 ${CH+0.08} 0 0 0</pose>
+        <visualize>false</visualize>
+        <ray>
+          <scan><horizontal>
+            <samples>360</samples><resolution>1</resolution>
+            <min_angle>-3.14159</min_angle><max_angle>3.14159</max_angle>
+          </horizontal></scan>
+          <range>
+            <min>0.12</min><max>6.0</max><resolution>0.01</resolution>
+          </range>
+          <noise><type>gaussian</type><mean>0.0</mean><stddev>0.012</stddev></noise>
+        </ray>
+      </sensor>
+    </plugin>
+
+    <plugin name="scout_imu" filename="libgazebo_ros_imu_sensor.so">
+      <ros><namespace>scout</namespace></ros>
+      <always_on>true</always_on>
+      <update_rate>200</update_rate>
+      <body_name>base_link</body_name>
+      <topic>imu/data</topic>
+      <gaussian_noise>0.0005</gaussian_noise>
+    </plugin>
+  </gazebo>
+</robot>

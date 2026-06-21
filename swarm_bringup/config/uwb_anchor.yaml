@@ -1,0 +1,23 @@
+# UWB 锚点配置 (Nooploop LinkTrack P)
+# 每台机器人装一个标签，用于三机相对定位
+
+uwb_manager:
+  ros__parameters:
+    # 锚点 ID 与串口
+    scout_tag_id:      1
+    carrier_tag_id:    2
+    specialist_tag_id: 3
+
+    # Nooploop LinkTrack 串口
+    scout_port:      /dev/ttyUSB2
+    carrier_port:    /dev/ttyUSB2
+    specialist_port: /dev/ttyUSB2
+    baud:            921600
+
+    # 发布话题
+    publish_relative_pose: true
+    update_rate: 10.0   # Hz
+
+# 安装说明:
+# pip install pyserial
+# 参考: https://github.com/nooploop-dev/nlink_parser

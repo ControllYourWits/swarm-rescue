@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  三机协同集群 CycloneDDS 调优配置
+  用法: export CYCLONEDDS_URI=file://$(pwd)/swarm_bringup/config/cyclonedds.xml
+
+  关键策略:
+  1. 禁用组播 (Multicast) → 防止 WiFi Mesh 环境下的 DDS 风暴
+  2. 单播发现 (Unicast Peers) → 明确指定三机 IP，避免全网泛洪
+  3. 控制指令保持 Reliable + KeepLast(1)
+  4. 高频传感器数据降级为 Best Effort (在代码中通过 QoS Profile 设置)
+-->
+<CycloneDDS xmlns="https://cdds.io/config"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://cdds.io/config
+            https://raw.githubusercontent.com/eclipse-cyclonedds/cyclonedds/master/etc/cyclonedds.xsd">
+    <Domain id="any">
+        <General>
+            <!-- 绑定 WiFi Mesh 网卡，避免与 4G 网卡冲突 -->
+            <!-- Interface selection is deployment-specific; do not hard-code wlan0 here. -->
+            <!-- 核心: 禁用组播 -->
+            <AllowMulticast>false</AllowMulticast>
+        </General>
+        <Discovery>
+            <!--
+              单播发现对端列表 (根据实际 IP 修改)
+              Scout:    192.168.8.101
+              Carrier:  192.168.8.102
+              Specialist: 192.168.8.103
+              GroundStation: 192.168.8.100
+            -->
+            <Peers>
+                <Peer address="192.168.8.100"/>
+                <Peer address="192.168.8.101"/>
+                <Peer address="192.168.8.102"/>
+                <Peer address="192.168.8.103"/>
+            </Peers>
+            <ParticipantIndex>auto</ParticipantIndex>
+        </Discovery>
+        <!--
+          内部通信缓冲区限制，防止慢消费者拖垮发布端
+        -->
+        <Internal>
+            <Watermarks>
+                <WhcHigh>500KB</WhcHigh>
+            </Watermarks>
+        </Internal>
+    </Domain>
+</CycloneDDS>

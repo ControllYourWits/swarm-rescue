@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>ground_station</name>
+  <version>1.0.0</version>
+  <description>Ground station ROS 2 package for command dispatch and swarm status aggregation.</description>
+  <maintainer email="dev@robot.com">dev</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

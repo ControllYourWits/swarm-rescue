@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swarm Rescue Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #c9d1d9; }
+        .header { background: #161b22; padding: 12px 24px; border-bottom: 1px solid #30363d;
+                   display: flex; align-items: center; gap: 16px; }
+        .header h1 { font-size: 18px; color: #58a6ff; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .dot-online { background: #3fb950; }
+        .dot-offline { background: #f85149; }
+        .dot-warn { background: #d29922; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 16px; padding: 16px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+                padding: 16px; }
+        .card h2 { font-size: 14px; color: #8b949e; text-transform: uppercase;
+                   letter-spacing: 0.5px; margin-bottom: 12px;
+                   display: flex; align-items: center; gap: 8px; }
+        .card h2 .icon { font-size: 18px; }
+        .metric { display: flex; justify-content: space-between; padding: 6px 0;
+                  border-bottom: 1px solid #21262d; font-size: 13px; }
+        .metric:last-child { border-bottom: none; }
+        .metric .label { color: #8b949e; }
+        .metric .value { color: #c9d1d9; font-weight: 600; }
+        .value-ok { color: #3fb950; }
+        .value-warn { color: #d29922; }
+        .value-err { color: #f85149; }
+        .life-bar { height: 6px; background: #21262d; border-radius: 3px; margin-top: 8px; }
+        .life-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+        .log-area { background: #0d1117; border: 1px solid #21262d; border-radius: 4px;
+                    padding: 8px; max-height: 200px; overflow-y: auto; font-size: 12px;
+                    font-family: monospace; margin-top: 8px; }
+        .log-entry { padding: 2px 0; border-bottom: 1px solid #161b22; }
+        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .btn { padding: 6px 14px; border: 1px solid #30363d; border-radius: 4px;
+               background: #21262d; color: #c9d1d9; cursor: pointer; font-size: 12px; }
+        .btn:hover { background: #30363d; }
+        .btn-estop { border-color: #f85149; color: #f85149; }
+        .btn-estop:hover { background: #f85149; color: #fff; }
+        .footer { text-align: center; padding: 8px; color: #484f58; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Swarm Rescue Dashboard</h1>
+        <span class="status-dot dot-online" id="conn-dot"></span>
+        <span id="conn-status">Connected</span>
+    </div>
+
+    <div class="grid">
+        <!-- Scout Card -->
+        <div class="card">
+            <h2><span class="icon">🔍</span> Scout <span class="status-dot" id="scout-dot"></span></h2>
+            <div class="metric"><span class="label">Position</span><span class="value" id="scout-pos">-</span></div>
+            <div class="metric"><span class="label">Mode</span><span class="value" id="scout-mode">-</span></div>
+            <div class="metric"><span class="label">RL Status</span><span class="value" id="scout-rl">-</span></div>
+        </div>
+
+        <!-- Carrier Card -->
+        <div class="card">
+            <h2><span class="icon">📦</span> Carrier <span class="status-dot" id="carrier-dot"></span></h2>
+            <div class="metric"><span class="label">Position</span><span class="value" id="carrier-pos">-</span></div>
+            <div class="metric"><span class="label">Battery</span><span class="value" id="carrier-bat">-</span></div>
+            <div class="metric"><span class="label">Network</span><span class="value" id="carrier-net">-</span></div>
+            <div class="metric"><span class="label">Supply</span><span class="value" id="carrier-supply">-</span></div>
+        </div>
+
+        <!-- Specialist Card -->
+        <div class="card">
+            <h2><span class="icon">🦾</span> Specialist <span class="status-dot" id="spec-dot"></span></h2>
+            <div class="metric"><span class="label">Position</span><span class="value" id="spec-pos">-</span></div>
+            <div class="metric"><span class="label">Arm</span><span class="value" id="spec-arm">-</span></div>
+            <div class="metric"><span class="label">Thermal</span><span class="value" id="spec-thermal">-</span></div>
+        </div>
+
+        <!-- Life Detection Card -->
+        <div class="card">
+            <h2><span class="icon">💓</span> Life Detection</h2>
+            <div class="metric"><span class="label">Confidence</span><span class="value" id="life-conf">0%</span></div>
+            <div class="life-bar"><div class="life-fill" id="life-bar" style="width:0%;background:#3fb950;"></div></div>
+            <div class="metric"><span class="label">Range</span><span class="value" id="life-range">-</span></div>
+        </div>
+
+        <!-- Commands Card -->
+        <div class="card">
+            <h2><span class="icon">⚡</span> Commands</h2>
+            <div class="btn-row">
+                <button class="btn btn-estop" onclick="sendCmd('scout:emergency')">Scout E-Stop</button>
+                <button class="btn btn-estop" onclick="sendCmd('carrier:emergency')">Carrier E-Stop</button>
+                <button class="btn btn-estop" onclick="sendCmd('specialist:emergency')">Spec E-Stop</button>
+            </div>
+            <div class="btn-row">
+                <button class="btn" onclick="sendCmd('carrier:supply:water:0')">💧 Water</button>
+                <button class="btn" onclick="sendCmd('carrier:supply:firstaid:1')">🩹 First Aid</button>
+                <button class="btn" onclick="sendCmd('specialist:arm_task:inspect')">🔍 Inspect</button>
+                <button class="btn" onclick="sendCmd('specialist:arm_task:clear')">🧹 Clear</button>
+            </div>
+        </div>
+
+        <!-- Mission Log Card -->
+        <div class="card" style="grid-column: span 2;">
+            <h2><span class="icon">📋</span> Mission Log</h2>
+            <div class="log-area" id="log-area"></div>
+        </div>
+    </div>
+
+    <div class="footer">Swarm Rescue Ground Station — ROS2 WebSocket Bridge</div>
+
+    <script>
+        const socket = io();
+        const connDot = document.getElementById('conn-dot');
+        const connStatus = document.getElementById('conn-status');
+
+        socket.on('connect', () => {
+            connDot.className = 'status-dot dot-online';
+            connStatus.textContent = 'Connected';
+        });
+        socket.on('disconnect', () => {
+            connDot.className = 'status-dot dot-offline';
+            connStatus.textContent = 'Disconnected';
+        });
+
+        socket.on('state_update', (data) => {
+            // Scout
+            updateDot('scout-dot', data.scout.online);
+            setText('scout-pos', fmtPos(data.scout.x, data.scout.y));
+            setText('scout-mode', data.scout.mode || '-');
+            setText('scout-rl', data.scout.rl || '-');
+
+            // Carrier
+            updateDot('carrier-dot', data.carrier.online);
+            setText('carrier-pos', fmtPos(data.carrier.x, data.carrier.y));
+            const bat = data.carrier.battery;
+            const batEl = setText('carrier-bat', bat.toFixed(0) + '%');
+            batEl.className = 'value ' + (bat < 20 ? 'value-err' : bat < 50 ? 'value-warn' : 'value-ok');
+            const netEl = setText('carrier-net', data.carrier.network ? 'OK' : 'WEAK');
+            netEl.className = 'value ' + (data.carrier.network ? 'value-ok' : 'value-err');
+            setText('carrier-supply', data.carrier.supply || '-');
+
+            // Specialist
+            updateDot('spec-dot', data.specialist.online);
+            setText('spec-pos', fmtPos(data.specialist.x, data.specialist.y));
+            setText('spec-arm', data.specialist.arm || '-');
+            setText('spec-thermal', data.specialist.thermal || '-');
+
+            // Life
+            const conf = (data.life.confidence * 100).toFixed(0);
+            setText('life-conf', conf + '%');
+            document.getElementById('life-bar').style.width = conf + '%';
+            document.getElementById('life-bar').style.background =
+                data.life.confidence > 0.7 ? '#f85149' : data.life.confidence > 0.4 ? '#d29922' : '#3fb950';
+            setText('life-range', data.life.range.toFixed(2) + ' m');
+
+            // Log
+            const logArea = document.getElementById('log-area');
+            if (data.log && data.log.length) {
+                logArea.innerHTML = data.log.slice(-20).reverse()
+                    .map(e => `<div class="log-entry">${e}</div>`).join('');
+            }
+        });
+
+        function fmtPos(x, y) {
+            return `(${(x||0).toFixed(2)}, ${(y||0).toFixed(2)})`;
+        }
+
+        function setText(id, text) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            return el;
+        }
+
+        function updateDot(id, online) {
+            document.getElementById(id).className =
+                'status-dot ' + (online ? 'dot-online' : 'dot-offline');
+        }
+
+        function sendCmd(cmd) {
+            socket.emit('command', {cmd: cmd});
+        }
+    </script>
+</body>
+</html>

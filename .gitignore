@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ROS2 build artifacts
+log/
+install/
+build/
+
+# RL training
+rl_training/checkpoints/
+rl_training/logs/
+rl_training/eval_results.csv
+
+# STM32 build
+*.o
+*.elf
+*.hex
+*.bin
+*.map
+.dep/
+
+# Model files
+*.onnx
+*.npz
+*.pkl
+*.pt
+*.pth
+
+# Keil MDK
+*.uvguix.*
+*.uvoptx
+Listings/
+Objects/
+RTE/

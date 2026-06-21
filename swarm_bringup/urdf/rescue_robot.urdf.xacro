@@ -1,0 +1,229 @@
+<?xml version="1.0"?>
+<!-- 三机协同救援集群统一 xacro, 通过 robot_name 参数区分外观 -->
+<robot name="$(arg robot_name)" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="robot_name" default="scout"/>
+  <xacro:arg name="robot_color" default="0.18 0.42 0.82 1"/>
+
+  <!-- ── 尺寸参数 (按机器人类型切换) ── -->
+  <xacro:property name="CL" value="${0.55 if robot_name == 'carrier' else (0.45 if robot_name == 'specialist' else 0.42)}"/>
+  <xacro:property name="CW" value="${0.40 if robot_name == 'carrier' else (0.35 if robot_name == 'specialist' else 0.32)}"/>
+  <xacro:property name="CH" value="${0.22 if robot_name == 'carrier' else (0.20 if robot_name == 'specialist' else 0.18)}"/>
+  <xacro:property name="WR" value="${0.065 if robot_name == 'carrier' else (0.055 if robot_name == 'specialist' else 0.048)}"/>
+  <xacro:property name="WW" value="${0.035 if robot_name == 'carrier' else (0.030 if robot_name == 'specialist' else 0.028)}"/>
+  <xacro:property name="WS" value="${0.34 if robot_name == 'carrier' else (0.30 if robot_name == 'specialist' else 0.28)}"/>
+  <xacro:property name="M"  value="${12.0 if robot_name == 'carrier' else (8.0 if robot_name == 'specialist' else 6.5)}"/>
+  <xacro:property name="BX" value="${CL/3}"/>
+  <xacro:property name="BY" value="${WS/2}"/>
+
+  <!-- ── 材质 ── -->
+  <material name="body_color"><color rgba="$(arg robot_color)"/></material>
+  <material name="frame_color"><color rgba="0.22 0.22 0.24 1"/></material>
+  <material name="accent_color"><color rgba="0.95 0.75 0.10 1"/></material>
+  <material name="dark_color"><color rgba="0.06 0.06 0.08 1"/></material>
+  <material name="tire_color"><color rgba="0.12 0.12 0.12 1"/></material>
+  <material name="hub_color"><color rgba="0.55 0.55 0.58 1"/></material>
+  <material name="led_front"><color rgba="0.95 0.95 0.85 1"/></material>
+  <material name="led_rear"><color rgba="0.90 0.15 0.10 1"/></material>
+  <material name="plate_color"><color rgba="${float(robot_color.split()[0])*0.8} ${float(robot_color.split()[1])*0.8} ${float(robot_color.split()[2])*0.8} 1"/></material>
+  <material name="arm_color"><color rgba="0.92 0.52 0.12 1"/></material>
+  <material name="joint_color"><color rgba="0.60 0.60 0.62 1"/></material>
+  <material name="lens_color"><color rgba="0.12 0.12 0.18 1"/></material>
+
+  <!-- ═══ 底盘主体 ═══ -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
+      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
+      <material name="body_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
+      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
+      <mass value="${M}"/>
+      <inertia ixx="${M*0.02}" ixy="0" ixz="0" iyy="${M*0.03}" iyz="0" izz="${M*0.04}"/>
+    </inertial>
+  </link>
+
+  <!-- 侧裙 -->
+  <link name="skirt_l"><visual><geometry><box size="${CL*0.85} 0.012 0.06"/></geometry><material name="frame_color"/></visual></link>
+  <joint name="skirt_l_j" type="fixed"><parent link="base_link"/><child link="skirt_l"/><origin xyz="0 ${CW/2+0.005} ${CH*0.32}" rpy="0 0 0"/></joint>
+  <link name="skirt_r"><visual><geometry><box size="${CL*0.85} 0.012 0.06"/></geometry><material name="frame_color"/></visual></link>
+  <joint name="skirt_r_j" type="fixed"><parent link="base_link"/><child link="skirt_r"/><origin xyz="0 ${-CW/2-0.005} ${CH*0.32}" rpy="0 0 0"/></joint>
+
+  <!-- 上层平台 -->
+  <link name="top_deck"><visual><geometry><box size="${CL*0.88} ${CW*0.82} 0.015"/></geometry><material name="plate_color"/></visual></link>
+  <joint name="top_deck_j" type="fixed"><parent link="base_link"/><child link="top_deck"/><origin xyz="0 0 ${CH+0.008}" rpy="0 0 0"/></joint>
+
+  <!-- 前保险杠 -->
+  <link name="front_bumper"><visual><geometry><box size="0.025 ${CW+0.02} 0.050"/></geometry><material name="frame_color"/></visual></link>
+  <joint name="front_bumper_j" type="fixed"><parent link="base_link"/><child link="front_bumper"/><origin xyz="${CL/2+0.010} 0 ${CH*0.38}" rpy="0 0 0"/></joint>
+  <!-- 前大灯 -->
+  <link name="hl_l"><visual><geometry><cylinder radius="0.013" length="0.008"/></geometry><material name="led_front"/></visual></link>
+  <joint name="hl_l_j" type="fixed"><parent link="front_bumper"/><child link="hl_l"/><origin xyz="0.015 ${CW*0.35} 0" rpy="0 1.5708 0"/></joint>
+  <link name="hl_r"><visual><geometry><cylinder radius="0.013" length="0.008"/></geometry><material name="led_front"/></visual></link>
+  <joint name="hl_r_j" type="fixed"><parent link="front_bumper"/><child link="hl_r"/><origin xyz="0.015 ${-CW*0.35} 0" rpy="0 1.5708 0"/></joint>
+
+  <!-- 后保险杠 + 尾灯 -->
+  <link name="rear_bumper"><visual><geometry><box size="0.020 ${CW*0.80} 0.040"/></geometry><material name="frame_color"/></visual></link>
+  <joint name="rear_bumper_j" type="fixed"><parent link="base_link"/><child link="rear_bumper"/><origin xyz="${-CL/2-0.008} 0 ${CH*0.35}" rpy="0 0 0"/></joint>
+  <link name="tl_l"><visual><geometry><box size="0.006 0.020 0.015"/></geometry><material name="led_rear"/></visual></link>
+  <joint name="tl_l_j" type="fixed"><parent link="rear_bumper"/><child link="tl_l"/><origin xyz="-0.012 ${CW*0.30} 0" rpy="0 0 0"/></joint>
+  <link name="tl_r"><visual><geometry><box size="0.006 0.020 0.015"/></geometry><material name="led_rear"/></visual></link>
+  <joint name="tl_r_j" type="fixed"><parent link="rear_bumper"/><child link="tl_r"/><origin xyz="-0.012 ${-CW*0.30} 0" rpy="0 0 0"/></joint>
+
+  <!-- ═══ Scout 专属: 雷达塔 + 毫米波 ═══ -->
+  <xacro:if value="${robot_name == 'scout'}">
+    <!-- 雷达塔柱 -->
+    <link name="lidar_tower"><visual><geometry><cylinder radius="0.018" length="0.06"/></geometry><material name="frame_color"/></visual></link>
+    <joint name="lidar_tower_j" type="fixed"><parent link="base_link"/><child link="lidar_tower"/><origin xyz="0.06 0 ${CH+0.03}" rpy="0 0 0"/></joint>
+    <!-- 雷达法兰 -->
+    <link name="lidar_flange"><visual><geometry><cylinder radius="0.035" length="0.006"/></geometry><material name="frame_color"/></visual></link>
+    <joint name="lidar_flange_j" type="fixed"><parent link="lidar_tower"/><child link="lidar_flange"/><origin xyz="0 0 0.032" rpy="0 0 0"/></joint>
+    <!-- RPLidar 本体 -->
+    <link name="lidar_link"><visual><geometry><cylinder radius="0.038" length="0.025"/></geometry><material name="dark_color"/></visual></link>
+    <joint name="lidar_joint" type="fixed"><parent link="lidar_flange"/><child link="lidar_link"/><origin xyz="0 0 0.016" rpy="0 0 0"/></joint>
+    <!-- 雷达顶窗 -->
+    <link name="lidar_window"><visual><geometry><cylinder radius="0.030" length="0.003"/></geometry><material name="lens_color"/></visual></link>
+    <joint name="lidar_window_j" type="fixed"><parent link="lidar_link"/><child link="lidar_window"/><origin xyz="0 0 0.014" rpy="0 0 0"/></joint>
+    <!-- 毫米波雷达 -->
+    <link name="radar_housing"><visual><geometry><box size="0.065 0.045 0.012"/></geometry><material name="dark_color"/></visual></link>
+    <joint name="radar_housing_j" type="fixed"><parent link="base_link"/><child link="radar_housing"/><origin xyz="${CL/2-0.01} 0 ${CH*0.55}" rpy="0 0 0"/></joint>
+    <link name="radar_ant"><visual><geometry><box size="0.002 0.035 0.008"/></geometry><material name="hub_color"/></visual></link>
+    <joint name="radar_ant_j" type="fixed"><parent link="radar_housing"/><child link="radar_ant"/><origin xyz="0.034 0 0" rpy="0 0 0"/></joint>
+    <!-- UWB 标签 -->
+    <link name="uwb_tag"><visual><geometry><box size="0.025 0.025 0.008"/></geometry><material name="accent_color"/></visual></link>
+    <joint name="uwb_tag_j" type="fixed"><parent link="base_link"/><child link="uwb_tag"/><origin xyz="-0.10 0 ${CH+0.004}" rpy="0 0 0"/></joint>
+  </xacro:if>
+
+  <!-- ═══ Carrier 专属: 物资舱 + 天线 ═══ -->
+  <xacro:if value="${robot_name == 'carrier'}">
+    <!-- 物资舱 (4格) -->
+    <link name="supply_link"><visual><geometry><box size="0.20 0.30 0.12"/></geometry><material name="dark_color"/></visual>
+      <collision><geometry><box size="0.20 0.30 0.12"/></geometry></collision>
+      <inertial><mass value="2.0"/><inertia ixx="0.02" ixy="0" ixz="0" iyy="0.03" iyz="0" izz="0.03"/></inertial>
+    </link>
+    <joint name="supply_joint" type="fixed"><parent link="base_link"/><child link="supply_link"/><origin xyz="${-CL/4} 0 ${CH+0.06}" rpy="0 0 0"/></joint>
+    <!-- 物资舱顶框 -->
+    <link name="bay_frame"><visual><geometry><box size="0.22 0.32 0.006"/></geometry><material name="frame_color"/></visual></link>
+    <joint name="bay_frame_j" type="fixed"><parent link="supply_link"/><child link="bay_frame"/><origin xyz="0 0 0.063" rpy="0 0 0"/></joint>
+    <!-- 4G 路由器 -->
+    <link name="router_box"><visual><geometry><box size="0.10 0.08 0.025"/></geometry><material name="dark_color"/></visual></link>
+    <joint name="router_box_j" type="fixed"><parent link="base_link"/><child link="router_box"/><origin xyz="0.12 0 ${CH+0.012}" rpy="0 0 0"/></joint>
+    <!-- 路由器天线 x2 -->
+    <link name="ant_sma1"><visual><geometry><cylinder radius="0.005" length="0.12"/></geometry><material name="hub_color"/></visual></link>
+    <joint name="ant_sma1_j" type="fixed"><parent link="router_box"/><child link="ant_sma1"/><origin xyz="0.035 0.025 0.075" rpy="0 0 0"/></joint>
+    <link name="ant_sma2"><visual><geometry><cylinder radius="0.005" length="0.12"/></geometry><material name="hub_color"/></visual></link>
+    <joint name="ant_sma2_j" type="fixed"><parent link="router_box"/><child link="ant_sma2"/><origin xyz="0.035 -0.025 0.075" rpy="0 0 0"/></joint>
+    <!-- 鞭状天线 -->
+    <link name="ant_whip_base"><visual><geometry><cylinder radius="0.010" length="0.030"/></geometry><material name="frame_color"/></visual></link>
+    <joint name="ant_whip_base_j" type="fixed"><parent link="base_link"/><child link="ant_whip_base"/><origin xyz="${-CL/2+0.06} 0 ${CH+0.015}" rpy="0 0 0"/></joint>
+    <link name="ant_whip"><visual><geometry><cylinder radius="0.006" length="0.18"/></geometry><material name="hub_color"/></visual></link>
+    <joint name="ant_whip_j" type="fixed"><parent link="ant_whip_base"/><child link="ant_whip"/><origin xyz="0 0 0.105" rpy="0 0 0"/></joint>
+    <link name="ant_whip_tip"><visual><geometry><cylinder radius="0.004" length="0.04"/></geometry><material name="accent_color"/></visual></link>
+    <joint name="ant_whip_tip_j" type="fixed"><parent link="ant_whip"/><child link="ant_whip_tip"/><origin xyz="0 0 0.10" rpy="0 0 0"/></joint>
+  </xacro:if>
+
+  <!-- ═══ Specialist 专属: LED灯条 + 热成像 + 机械臂 ═══ -->
+  <xacro:if value="${robot_name == 'specialist'}">
+    <!-- LED 补光灯条 -->
+    <link name="led_bar_mount"><visual><geometry><box size="0.015 0.08 0.012"/></geometry><material name="frame_color"/></visual></link>
+    <joint name="led_bar_mount_j" type="fixed"><parent link="base_link"/><child link="led_bar_mount"/><origin xyz="${CL/2-0.01} 0 ${CH+0.006}" rpy="0 0 0"/></joint>
+    <link name="led_bar"><visual><geometry><box size="0.010 0.065 0.008"/></geometry><material name="led_front"/></visual></link>
+    <joint name="led_bar_j" type="fixed"><parent link="led_bar_mount"/><child link="led_bar"/><origin xyz="0.012 0 0" rpy="0 0 0"/></joint>
+    <!-- SOS 红灯 -->
+    <link name="sos_light"><visual><geometry><cylinder radius="0.008" length="0.006"/></geometry><material name="led_rear"/></visual></link>
+    <joint name="sos_light_j" type="fixed"><parent link="base_link"/><child link="sos_light"/><origin xyz="${CL*0.15} 0 ${CH+0.003}" rpy="0 0 0"/></joint>
+    <!-- 热成像模组 -->
+    <link name="thermal_housing"><visual><geometry><box size="0.035 0.035 0.025"/></geometry><material name="dark_color"/></visual></link>
+    <joint name="thermal_housing_j" type="fixed"><parent link="base_link"/><child link="thermal_housing"/><origin xyz="${CL/2-0.02} -0.05 ${CH+0.012}" rpy="0 0 0"/></joint>
+    <link name="thermal_lens"><visual><geometry><cylinder radius="0.012" length="0.008"/></geometry><material name="lens_color"/></visual></link>
+    <joint name="thermal_lens_j" type="fixed"><parent link="thermal_housing"/><child link="thermal_lens"/><origin xyz="0.022 0 0" rpy="0 1.5708 0"/></joint>
+    <!-- 机械臂底座 -->
+    <link name="arm_base_plate"><visual><geometry><cylinder radius="0.035" length="0.015"/></geometry><material name="dark_color"/></visual>
+      <inertial><mass value="0.3"/><inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0001"/></inertial>
+    </link>
+    <joint name="arm_base_plate_j" type="fixed"><parent link="base_link"/><child link="arm_base_plate"/><origin xyz="${-CL*0.22} 0 ${CH+0.008}" rpy="0 0 0"/></joint>
+    <!-- J0 底座旋转 -->
+    <link name="arm_link0"><visual><geometry><cylinder radius="0.028" length="0.045"/></geometry><material name="dark_color"/></visual>
+      <inertial><mass value="0.3"/><inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0001"/></inertial>
+    </link>
+    <joint name="arm_j0" type="revolute"><parent link="arm_base_plate"/><child link="arm_link0"/><origin xyz="0 0 0.022" rpy="0 0 0"/><axis xyz="0 0 1"/><limit lower="-2.36" upper="2.36" effort="10" velocity="3.0"/></joint>
+    <link name="arm_j0_ring"><visual><geometry><cylinder radius="0.032" length="0.010"/></geometry><material name="joint_color"/></visual></link>
+    <joint name="arm_j0_ring_j" type="fixed"><parent link="arm_link0"/><child link="arm_j0_ring"/><origin xyz="0 0 -0.015" rpy="0 0 0"/></joint>
+    <!-- J1 大臂 -->
+    <link name="arm_link1"><visual><geometry><box size="0.035 0.035 0.15"/></geometry><material name="arm_color"/></visual>
+      <inertial><origin xyz="0 0 0.075" rpy="0 0 0"/><mass value="0.5"/><inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.0002"/></inertial>
+    </link>
+    <joint name="arm_j1" type="revolute"><parent link="arm_link0"/><child link="arm_link1"/><origin xyz="0 0 0.022" rpy="0 0 0"/><axis xyz="0 1 0"/><limit lower="-1.57" upper="1.57" effort="10" velocity="3.0"/></joint>
+    <link name="arm_j1_housing"><visual><geometry><box size="0.042 0.042 0.028"/></geometry><material name="joint_color"/></visual></link>
+    <joint name="arm_j1_housing_j" type="fixed"><parent link="arm_link1"/><child link="arm_j1_housing"/><origin xyz="0 0 -0.005" rpy="0 0 0"/></joint>
+    <!-- J2 小臂 -->
+    <link name="arm_link2"><visual><geometry><box size="0.028 0.028 0.12"/></geometry><material name="arm_color"/></visual>
+      <inertial><origin xyz="0 0 0.06" rpy="0 0 0"/><mass value="0.35"/><inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0005" iyz="0" izz="0.0001"/></inertial>
+    </link>
+    <joint name="arm_j2" type="revolute"><parent link="arm_link1"/><child link="arm_link2"/><origin xyz="0 0 0.15" rpy="0 0 0"/><axis xyz="0 1 0"/><limit lower="-1.57" upper="1.57" effort="10" velocity="3.0"/></joint>
+    <!-- J3 腕部 -->
+    <link name="arm_link3"><visual><geometry><box size="0.022 0.022 0.10"/></geometry><material name="arm_color"/></visual>
+      <inertial><origin xyz="0 0 0.05" rpy="0 0 0"/><mass value="0.2"/><inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0001"/></inertial>
+    </link>
+    <joint name="arm_j3" type="revolute"><parent link="arm_link2"/><child link="arm_link3"/><origin xyz="0 0 0.12" rpy="0 0 0"/><axis xyz="0 1 0"/><limit lower="-2.09" upper="2.09" effort="8" velocity="3.0"/></joint>
+    <!-- 夹爪 -->
+    <link name="gripper_base"><visual><geometry><box size="0.035 0.030 0.015"/></geometry><material name="dark_color"/></visual>
+      <inertial><mass value="0.1"/><inertia ixx="0.00005" ixy="0" ixz="0" iyy="0.00005" iyz="0" izz="0.00005"/></inertial>
+    </link>
+    <joint name="gripper_base_j" type="revolute"><parent link="arm_link3"/><child link="gripper_base"/><origin xyz="0 0 0.10" rpy="0 0 0"/><axis xyz="0 0 1"/><limit lower="-1.57" upper="1.57" effort="5" velocity="2.0"/></joint>
+    <link name="grip_finger_l"><visual><geometry><box size="0.008 0.006 0.050"/></geometry><material name="joint_color"/></visual></link>
+    <joint name="grip_finger_l_j" type="fixed"><parent link="gripper_base"/><child link="grip_finger_l"/><origin xyz="0 0.014 0.032" rpy="0 0 0"/></joint>
+    <link name="grip_finger_r"><visual><geometry><box size="0.008 0.006 0.050"/></geometry><material name="joint_color"/></visual></link>
+    <joint name="grip_finger_r_j" type="fixed"><parent link="gripper_base"/><child link="grip_finger_r"/><origin xyz="0 -0.014 0.032" rpy="0 0 0"/></joint>
+  </xacro:if>
+
+  <!-- ═══ 驱动轮 (麦克纳姆/普通, 带轮毂+悬臂) ═══ -->
+  <xacro:macro name="wheel" params="name x y">
+    <joint name="${name}_joint" type="continuous">
+      <parent link="base_link"/><child link="${name}_link"/>
+      <origin xyz="${x} ${y} -${WR+0.008}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+    <link name="${name}_link">
+      <visual><geometry><cylinder radius="${WR}" length="${WW}"/></geometry><material name="tire_color"/></visual>
+      <collision><geometry><cylinder radius="${WR}" length="${WW}"/></geometry></collision>
+      <inertial><mass value="0.15"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0002"/></inertial>
+    </link>
+    <link name="${name}_hub"><visual><geometry><cylinder radius="${WR*0.45}" length="${WW+0.004}"/></geometry><material name="hub_color"/></visual></link>
+    <joint name="${name}_hub_j" type="fixed"><parent link="${name}_link"/><child link="${name}_hub"/><origin xyz="0 0 0" rpy="0 0 0"/></joint>
+    <link name="${name}_arm"><visual><geometry><box size="0.015 0.015 ${WR*1.8}"/></geometry><material name="frame_color"/></visual></link>
+    <joint name="${name}_arm_j" type="fixed"><parent link="base_link"/><child link="${name}_arm"/><origin xyz="${x} ${y} -${WR*0.5}" rpy="0 0 0"/></joint>
+  </xacro:macro>
+
+  <xacro:wheel name="fl" x="${BX}"  y="${BY}"/>
+  <xacro:wheel name="fr" x="${BX}"  y="${-BY}"/>
+  <xacro:wheel name="rl" x="${-BX}" y="${BY}"/>
+  <xacro:wheel name="rr" x="${-BX}" y="${-BY}"/>
+
+  <!-- ═══ Gazebo 插件 ═══ -->
+  <gazebo>
+    <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros><namespace>$(arg robot_name)</namespace></ros>
+      <update_rate>100</update_rate>
+      <left_joint>fl_joint rl_joint</left_joint>
+      <right_joint>fr_joint rr_joint</right_joint>
+      <wheel_separation>${WS}</wheel_separation>
+      <wheel_diameter>${2*WR}</wheel_diameter>
+      <max_wheel_torque>10.0</max_wheel_torque>
+      <command_topic>cmd_vel</command_topic>
+      <odometry_topic>odom</odometry_topic>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+    </plugin>
+    <plugin name="imu" filename="libgazebo_ros_imu_sensor.so">
+      <ros><namespace>$(arg robot_name)</namespace></ros>
+      <update_rate>200</update_rate>
+      <body_name>base_link</body_name>
+      <topic>imu/data</topic>
+    </plugin>
+  </gazebo>
+</robot>
