@@ -10,7 +10,6 @@
 #define MAX_CUR      16384.0f
 #define BAT_V        24.0f
 #define DEF_PWR      60.0f   /* 废墟中功率降低保护电机 */
-#define SPIN_WZ      4.71f   /* 小陀螺 1.5π rad/s */
 
 static PID_t   s_pid[MOTOR_NUM];
 static float   s_rpm_set[MOTOR_NUM];

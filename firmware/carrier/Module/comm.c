@@ -24,8 +24,12 @@ static void Dispatch(uint8_t id,const uint8_t *pl){
 void BSP_UART3_RxCB(uint8_t b){
     switch(s_ps){
     case PS_HEADER:if(b==PROTO_HEADER)s_ps=PS_LEN;break;
-    case PS_LEN:s_len=b;s_buf[0]=b;s_pos=1;s_ps=PS_DATA;break;
-    case PS_DATA:s_buf[s_pos++]=b;if(s_pos==(uint8_t)(s_len+1))s_ps=PS_CRC;break;
+    case PS_LEN:
+        if(b>PROTO_MAX_PAYLOAD){s_ps=PS_HEADER;break;}
+        s_len=b;s_buf[0]=b;s_pos=1;s_ps=PS_DATA;break;
+    case PS_DATA:
+        if(s_pos>=sizeof(s_buf)){s_ps=PS_HEADER;break;}
+        s_buf[s_pos++]=b;if(s_pos==(uint8_t)(s_len+1))s_ps=PS_CRC;break;
     case PS_CRC:s_ps=(proto_crc8(s_buf,(uint16_t)(s_len+1))==b)?PS_TAIL:PS_HEADER;break;
     case PS_TAIL:if(b==PROTO_TAIL)Dispatch(s_buf[1],&s_buf[2]);s_ps=PS_HEADER;break;}}
 
@@ -41,8 +45,8 @@ void Comm_TxTask(void){
         len=proto_build(s_tx,MSG_ODOM,&om,sizeof(om));
     } else {
         MsgBattery_t bat;
-        bat.voltage=36.0f;  /* TODO: 接ADC */
-        bat.current=5.0f;
+        bat.voltage=Carrier_GetBatteryVoltage();
+        bat.current=0.0f;  /* TODO: 接电流传感器 */
         bat.percent=(uint8_t)Carrier_GetBattery();
         bat.charging=0;
         len=proto_build(s_tx,MSG_BATTERY,&bat,sizeof(bat));

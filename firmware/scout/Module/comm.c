@@ -37,8 +37,11 @@ static void Dispatch(uint8_t id, const uint8_t *pl) {
 void BSP_UART3_RxCB(uint8_t b) {
     switch (s_ps) {
     case PS_HEADER: if (b==PROTO_HEADER) s_ps=PS_LEN; break;
-    case PS_LEN:    s_len=b; s_buf[0]=b; s_pos=1; s_ps=PS_DATA; break;
+    case PS_LEN:
+        if (b > PROTO_MAX_PAYLOAD) { s_ps = PS_HEADER; break; }
+        s_len=b; s_buf[0]=b; s_pos=1; s_ps=PS_DATA; break;
     case PS_DATA:
+        if (s_pos >= sizeof(s_buf)) { s_ps = PS_HEADER; break; }
         s_buf[s_pos++]=b;
         if (s_pos==(uint8_t)(s_len+1)) s_ps=PS_CRC;
         break;

@@ -13,3 +13,4 @@ void Carrier_GetOdom(float *x, float *y, float *yaw);
 void Carrier_GetVelocity(float *vx, float *vy, float *wz);
 uint8_t Carrier_GetMode(void);
 float Carrier_GetBattery(void);
+float Carrier_GetBatteryVoltage(void);

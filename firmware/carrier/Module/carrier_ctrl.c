@@ -144,3 +144,7 @@ float Carrier_GetBattery(void) {
     float pct = (s_bat_v - 22.4f) / (33.6f - 22.4f) * 100.0f;
     return clampf_local(pct, 0.0f, 100.0f);
 }
+
+float Carrier_GetBatteryVoltage(void) {
+    return s_bat_v;
+}
