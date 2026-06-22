@@ -42,7 +42,7 @@ for subdir in ["config", "worlds", "urdf"]:
 setup(
     name=package_name,
     version="1.0.0",
-    packages=[package_name],
+    packages=[package_name, f"{package_name}.shared"],
     data_files=_data_files,
     install_requires=["setuptools"],
     zip_safe=True,

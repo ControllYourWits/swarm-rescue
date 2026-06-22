@@ -5,10 +5,11 @@ import random
 import struct
 import sys
 
+# 将 swarm_bringup 加入路径, 以便导入 shared 子模块
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                     "..", "shared", "protocol")))
-from swarm_protocol import (
+                                     "..", "swarm_bringup")))
+from swarm_bringup.shared.swarm_protocol import (
     FMT_CMD_VEL, FMT_ODOM, FMT_IMU, FMT_STATUS, FMT_BATTERY,
     FMT_ARM_CMD, FMT_SUPPLY_CMD, FMT_LED_CMD,
     FrameParser, MsgDown, MsgUp, RobotId, ChassisMode,

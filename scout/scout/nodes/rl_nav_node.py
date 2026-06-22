@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Scout 局部导航节点, 使用 ONNX 策略推理和安全的降级控制."""
-import math, os, sys, time
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../../shared"))
+import math, time
 
 import numpy as np
 import rclpy
@@ -9,7 +8,7 @@ from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32MultiArray, String
-from qos_profiles import QOS_COMMAND
+from swarm_bringup.shared.qos_profiles import QOS_COMMAND
 
 try:
     import onnxruntime as ort

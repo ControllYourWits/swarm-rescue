@@ -3,15 +3,13 @@
 import math
 import time
 
-import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../../shared"))
 import numpy as np
 import rclpy
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32MultiArray
-from qos_profiles import QOS_SENSOR
+from swarm_bringup.shared.qos_profiles import QOS_SENSOR
 
 
 class LifeMapNode(Node):

@@ -258,13 +258,12 @@ mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
 # 符号链接各个 ROS2 包 (推荐, 修改源码后无需重新拷贝)
-ln -sf ~/swarm_rescue/scout/ros2_pkg         scout
-ln -sf ~/swarm_rescue/carrier/ros2_pkg       carrier
-ln -sf ~/swarm_rescue/specialist/ros2_pkg    specialist
-ln -sf ~/swarm_rescue/swarm_msgs             swarm_msgs
-ln -sf ~/swarm_rescue/swarm_bringup          swarm_bringup
-ln -sf ~/swarm_rescue/ground_station         ground_station
-ln -sf ~/swarm_rescue/shared                 shared
+ln -sf ~/swarm_rescue/scout               scout
+ln -sf ~/swarm_rescue/carrier             carrier
+ln -sf ~/swarm_rescue/specialist          specialist
+ln -sf ~/swarm_rescue/swarm_msgs          swarm_msgs
+ln -sf ~/swarm_rescue/swarm_bringup       swarm_bringup
+ln -sf ~/swarm_rescue/ground_station      ground_station
 
 # 初始化 rosdep
 sudo rosdep init 2>/dev/null || true
@@ -305,7 +304,7 @@ ros2 pkg list | grep -E "scout|carrier|specialist|swarm"
 sudo apt install -y gcc-arm-none-eabi
 
 # 编译 Scout 固件
-cd ~/swarm_rescue/scout/stm32_fw
+cd ~/swarm_rescue/firmware/scout
 make -j$(nproc)
 # 输出: build/scout_fw.hex
 
@@ -313,8 +312,8 @@ make -j$(nproc)
 make flash
 
 # Carrier / Specialist 同理
-cd ~/swarm_rescue/carrier/stm32_fw && make -j$(nproc)
-cd ~/swarm_rescue/specialist/stm32_fw && make -j$(nproc)
+cd ~/swarm_rescue/firmware/carrier && make -j$(nproc)
+cd ~/swarm_rescue/firmware/specialist && make -j$(nproc)
 ```
 
 ---
@@ -599,103 +598,96 @@ python3 verify_onnx.py --onnx /home/robot/models/scout_policy.onnx \
 
 ```
 swarm_rescue/
-├── README.md                          # 本文档
-├── .gitignore                         # Git 忽略规则
-├── docker-compose.yml                 # Docker 部署 (可选)
 │
-├── shared/                            # 跨模块共用代码
-│   ├── protocol/
-│   │   ├── swarm_protocol.h           #   通信协议 C 头文件 (STM32 端)
-│   │   └── swarm_protocol.py          #   通信协议 Python 版 (ROS2 端)
-│   └── qos_profiles.py                #   DDS QoS 配置 (控制/传感器)
+├── scout/                                  # 探测先遣机 (ROS2 包)
+│   ├── scout/nodes/                        #   ROS2 节点
+│   │   ├── serial_bridge.py                #     STM32 串口桥 + 心跳看门狗 + 状态机
+│   │   ├── lidar_proc.py                   #     激光雷达 → 36 扇区障碍物距离
+│   │   ├── rl_nav_node.py                  #     RL ONNX 推理局部导航
+│   │   ├── radar_processor.py              #     AWR1642 毫米波生命体征处理
+│   │   ├── life_map_node.py                #     生命概率栅格地图 + 目标发布
+│   │   └── nav2_goal_bridge.py             #     Nav2 导航目标桥接 (可选)
+│   ├── scout/launch/                       #   启动文件
+│   │   └── scout.launch.py                 #     单机启动 (串口/雷达/SLAM/导航)
+│   └── scout/config/                       #   Nav2 参数
 │
-├── scout/                             # 探测先遣机
-│   ├── stm32_fw/                      #   STM32 FreeRTOS 固件
-│   │   ├── Algorithm/                 #     PID / 运动学 / Mahony AHRS
-│   │   ├── BSP/                       #     CAN / UART 底层驱动
-│   │   ├── Driver/                    #     M3508 电机 / BMI088 IMU
-│   │   ├── Module/                    #     底盘控制 / 通信模块
-│   │   └── Core/                      #     FreeRTOS 主入口 + SBUS 遥控
-│   └── ros2_pkg/                      #   ROS2 节点
-│       ├── scout/nodes/
-│       │   ├── serial_bridge.py       #     STM32 串口桥 + 心跳看门狗
-│       │   ├── lidar_proc.py          #     激光雷达扇区化
-│       │   ├── rl_nav_node.py         #     RL ONNX 推理导航
-│       │   ├── radar_processor.py     #     毫米波生命体征处理
-│       │   ├── life_map_node.py       #     生命概率栅格地图
-│       │   └── nav2_goal_bridge.py    #     Nav2 目标桥接 (可选)
-│       ├── scout/launch/
-│       │   └── scout.launch.py        #     Scout 启动文件
-│       └── scout/config/
-│           └── nav2_params.yaml       #     Nav2 参数
+├── carrier/                                # 补给运输机 (ROS2 包)
+│   └── carrier/nodes/                      #   ROS2 节点
+│       ├── serial_bridge.py                #     STM32 串口桥 + 电池监控
+│       ├── follow_navigator.py             #     跟随控制器 (直连/Nav2 双模式)
+│       ├── supply_manager.py               #     4 槽位物资管理 + 自动投送
+│       ├── human_simulator.py              #     虚拟人类仿真 (demo 用)
+│       ├── relay_manager.py                #     GL.iNet 4G/5G 路由状态监控
+│       └── lora_bridge_node.py             #     LoRa 灾备通信 (断网自动激活)
 │
-├── carrier/                           # 补给运输机
-│   ├── stm32_fw/                      #   STM32 固件 (底盘+物资舵机)
-│   │   └── Module/
-│   │       ├── carrier_ctrl.c         #     底盘+电池 ADC+舵机 PWM
-│   │       ├── supply.c               #     物资投送状态机 (4 槽位)
-│   │       └── comm.c                 #     通信帧收发
-│   └── ros2_pkg/
-│       └── carrier/nodes/
-│           ├── serial_bridge.py       #     串口桥 + 心跳看门狗
-│           ├── follow_navigator.py    #     跟随控制器 (direct/Nav2)
-│           ├── supply_manager.py      #     物资管理 + 自动投送
-│           ├── human_simulator.py     #     虚拟人类仿真 (demo 用)
-│           ├── relay_manager.py       #     4G/5G 路由监控
-│           └── lora_bridge_node.py    #     LoRa 灾备链路
+├── specialist/                             # 作业处置机 (ROS2 包)
+│   └── specialist/nodes/                   #   ROS2 节点
+│       ├── serial_bridge.py                #     STM32 串口桥 + 状态机
+│       ├── arm_planner.py                  #     4-DOF 机械臂动作序列
+│       └── thermal_node.py                 #     热成像处理 (真实/仿真)
 │
-├── specialist/                        # 作业处置机
-│   ├── stm32_fw/                      #   STM32 固件
-│   │   └── Module/
-│   │       ├── arm.c                  #     4-DOF 机械臂插值控制
-│   │       ├── led.c                  #     RGB LED (常亮/频闪/SOS)
-│   │       └── spec_ctrl.c            #     底盘控制封装
-│   └── ros2_pkg/
-│       └── specialist/nodes/
-│           ├── serial_bridge.py       #     串口桥 + 心跳看门狗
-│           ├── arm_planner.py         #     机械臂动作序列
-│           └── thermal_node.py        #     热成像处理 (仿真/真实)
-│
-├── ground_station/                    # 地面指挥站
+├── ground_station/                         # 地面指挥站 (ROS2 包)
 │   └── ground_station/
-│       ├── ground_station_node.py     #   全局监控 + 自动调度
-│       ├── web_dashboard.py           #   Flask Web 实时仪表盘
-│       └── templates/
-│           └── dashboard.html         #   Web 前端页面
+│       ├── ground_station_node.py          #     全局状态监控 + 自动调度
+│       ├── task_coordinator.py             #     竞价式任务协调器
+│       ├── web_dashboard.py                #     Flask WebSocket 实时仪表盘
+│       └── templates/dashboard.html        #     Web 前端 (暗色主题)
 │
-├── swarm_msgs/                        # 自定义 ROS2 消息
-│   └── msg/
-│       ├── LifeSign.msg               #   生命体征 (range, freq, conf)
-│       ├── SwarmStatus.msg            #   集群状态
-│       └── ArmTask.msg                #   机械臂任务
-│
-├── swarm_bringup/                     # 统一启动与仿真
+├── swarm_bringup/                          # 统一启动与仿真 (ROS2 包)
+│   ├── swarm_bringup/
+│   │   ├── sim_swarm_node.py               #     轻量仿真器 (odom/laser/life)
+│   │   └── shared/                         #     ★ 跨包共用模块 (所有节点共享)
+│   │       ├── swarm_protocol.py           #       通信协议 Python 版
+│   │       ├── qos_profiles.py             #       DDS QoS 配置
+│   │       └── robot_state.py              #       通用机器人状态机
 │   ├── launch/
-│   │   ├── swarm.launch.py            #   完整三机实车启动
-│   │   ├── sim.launch.py              #   Gazebo 仿真启动
-│   │   └── demo_human_follow.launch.py #  轻量 demo (无 Gazebo)
-│   ├── urdf/                          #   三机 URDF 模型
-│   ├── config/                        #   SLAM/CycloneDDS/RViz 配置
-│   └── worlds/                        #   Gazebo 废墟世界文件
+│   │   ├── swarm.launch.py                 #     完整三机实车启动
+│   │   ├── sim.launch.py                   #     Gazebo 仿真启动
+│   │   └── demo_human_follow.launch.py     #     轻量 demo (无 Gazebo)
+│   ├── urdf/                               #     三机 URDF/Xacro 模型
+│   ├── config/                             #     SLAM/CycloneDDS/RViz 配置
+│   └── worlds/                             #     Gazebo 废墟世界
 │
-├── rl_training/                       # RL 强化学习
-│   ├── disaster_env.py                #   废墟环境 (Gymnasium, 13 项改进)
-│   ├── train_scout.py                 #   PPO 训练脚本 (20 项改进)
-│   ├── eval_scout.py                  #   模型评估 (输出 CSV 报告)
-│   ├── verify_onnx.py                 #   ONNX 导出精度验证
-│   └── requirements.txt               #   Python 依赖
+├── firmware/                               # STM32F407 FreeRTOS 固件
+│   ├── include/                            #     共用头文件 (swarm_protocol.h)
+│   ├── scout/                              #     Scout 固件
+│   │   ├── Algorithm/                      #       PID / 麦轮运动学 / Mahony AHRS
+│   │   ├── BSP/                            #       CAN 1Mbps / UART 921600 驱动
+│   │   ├── Driver/                         #       M3508 电机 / BMI088 IMU
+│   │   ├── Module/                         #       底盘控制 / 通信收发
+│   │   └── Core/                           #       FreeRTOS 入口 + SBUS 遥控
+│   ├── carrier/                            #     Carrier 固件 (底盘+4槽舵机+电池ADC)
+│   └── specialist/                         #     Specialist 固件 (底盘+机械臂+LED)
 │
-├── test/                              # 单元测试
-│   ├── test_protocol.py               #   通信协议完整测试
-│   ├── test_chassis_kinematics.py     #   底盘运动学+PID+Mahony
-│   ├── test_disaster_env.py           #   废墟环境接口测试
-│   ├── test_robot_roles.py            #   机器人角色测试
-│   └── test_swarm_collaboration.py    #   协同逻辑测试
+├── swarm_msgs/                             # 自定义 ROS2 消息类型
+│   └── msg/
+│       ├── LifeSign.msg                    #     生命体征 (距离/呼吸/心率/置信度)
+│       ├── SwarmStatus.msg                 #     集群状态
+│       └── ArmTask.msg                     #     机械臂任务
 │
-└── docs/                              # 项目文档
-    ├── code_review.md                 #   架构审查建议
-    ├── operation_manual.md            #   操作手册
-    └── 三机协同救援机器人集群系统.pdf  #   系统设计文档
+├── rl_training/                            # Scout RL 强化学习
+│   ├── disaster_env.py                     #     废墟训练环境 (Gymnasium, 13 项改进)
+│   ├── train_scout.py                      #     PPO 训练脚本 (课程学习/熵调度)
+│   ├── eval_scout.py                       #     模型评估 → CSV 报告
+│   ├── verify_onnx.py                      #     ONNX 导出精度验证
+│   └── requirements.txt                    #     PyTorch/SB3/Gymnasium 依赖
+│
+├── test/                                   # 单元测试
+│   ├── test_protocol.py                    #     通信协议编解码 + CRC + 噪声容错
+│   ├── test_chassis_kinematics.py          #     麦轮运动学正逆解 + PID + Mahony
+│   ├── test_disaster_env.py                #     废墟环境接口 + 碰撞 + 传感器
+│   ├── test_robot_roles.py                 #     三机角色功能测试
+│   └── test_swarm_collaboration.py         #     多机协同链路测试
+│
+├── docs/                                   # 项目文档
+│   ├── images/                             #     三机三维建模渲染图
+│   ├── code_review.md                      #     架构优化建议 (UWB/DDS/LoRa)
+│   └── 三机协同救援机器人集群系统.pdf       #     系统设计文档
+│
+├── README.md                               # 本文档
+├── setup.sh                                # 一键环境安装 (stm32/ros2/rl)
+├── docker-compose.yml                      # Docker 部署 Web Dashboard
+└── .gitignore                              # Git 忽略规则
 ```
 
 ---

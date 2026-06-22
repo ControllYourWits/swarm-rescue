@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """Specialist thermal processing node with simulation fallback."""
-import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../../shared"))
 import numpy as np
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray, String
-from qos_profiles import QOS_SENSOR
+from swarm_bringup.shared.qos_profiles import QOS_SENSOR
 
 try:
     import cv2

@@ -10,7 +10,7 @@ from ros_test_stubs import FakePublisher, Float32MultiArray, String, install_ros
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, os.path.join(ROOT, "shared"))
+sys.path.insert(0, os.path.join(ROOT, "swarm_bringup"))
 install_ros_stubs()
 
 
@@ -24,23 +24,23 @@ def import_from_path(name, path):
 
 life_map_node = import_from_path(
     "life_map_node_under_test",
-    os.path.join("scout", "ros2_pkg", "scout", "nodes", "life_map_node.py"),
+    os.path.join("scout", "scout", "nodes", "life_map_node.py"),
 )
 lora_bridge_node = import_from_path(
     "lora_bridge_node_under_test",
-    os.path.join("carrier", "ros2_pkg", "carrier", "nodes", "lora_bridge_node.py"),
+    os.path.join("carrier", "carrier", "nodes", "lora_bridge_node.py"),
 )
 supply_manager = import_from_path(
     "supply_manager_under_test",
-    os.path.join("carrier", "ros2_pkg", "carrier", "nodes", "supply_manager.py"),
+    os.path.join("carrier", "carrier", "nodes", "supply_manager.py"),
 )
 thermal_node = import_from_path(
     "thermal_node_under_test",
-    os.path.join("specialist", "ros2_pkg", "specialist", "nodes", "thermal_node.py"),
+    os.path.join("specialist", "specialist", "nodes", "thermal_node.py"),
 )
 arm_planner = import_from_path(
     "arm_planner_under_test",
-    os.path.join("specialist", "ros2_pkg", "specialist", "nodes", "arm_planner.py"),
+    os.path.join("specialist", "specialist", "nodes", "arm_planner.py"),
 )
 
 
