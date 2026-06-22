@@ -161,7 +161,7 @@
   <xacro:taillight side="l" y_off="${CW*0.30}"/>
   <xacro:taillight side="r" y_off="${-CW*0.30}"/>
 
-  <!-- ── RPLidar A1 塔架 ── -->
+  <!-- ── RPLidar A1 塔架 (2D LiDAR, 默认) ── -->
   <!-- 塔柱 -->
   <link name="lidar_tower">
     <visual>
@@ -208,6 +208,105 @@
   <joint name="lidar_window_j" type="fixed">
     <parent link="lidar_link"/><child link="lidar_window"/>
     <origin xyz="0 0 0.014" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ── Livox Mid-360 (3D LiDAR, 升级硬件) ── -->
+  <!-- 安装支架 (顶部, 倾斜 15° 安装, 参考 PolarBear 哨兵) -->
+  <link name="livox_mount">
+    <visual>
+      <geometry><box size="0.06 0.06 0.015"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="livox_mount_j" type="fixed">
+    <parent link="base_link"/><child link="livox_mount"/>
+    <origin xyz="0.06 0 ${CH+0.02}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Livox Mid-360 本体 (65×65×52mm) -->
+  <link name="livox_link">
+    <visual>
+      <geometry><box size="0.065 0.065 0.052"/></geometry>
+      <material name="scout_dark"/>
+    </visual>
+  </link>
+  <joint name="livox_joint" type="fixed">
+    <parent link="livox_mount"/><child link="livox_link"/>
+    <!-- 倾斜 15° 安装, 扩大垂直视野 -->
+    <origin xyz="0 0 0.034" rpy="0 -0.262 0"/>
+  </joint>
+
+  <!-- Livox 镜头窗口 -->
+  <link name="livox_lens">
+    <visual>
+      <geometry><cylinder radius="0.018" length="0.003"/></geometry>
+      <material name="scout_lens"/>
+    </visual>
+  </link>
+  <joint name="livox_lens_j" type="fixed">
+    <parent link="livox_link"/><child link="livox_lens"/>
+    <origin xyz="0.034 0 0" rpy="0 1.5708 0"/>
+  </joint>
+
+  <!-- ── Intel RealSense D455 (深度相机, 升级硬件) ── -->
+  <!-- 安装位置: 前方, 朝前 15° 下倾, 参考 PolarBear 传感器布局 -->
+  <link name="realsense_mount">
+    <visual>
+      <geometry><box size="0.02 0.02 0.01"/></geometry>
+      <material name="scout_frame"/>
+    </visual>
+  </link>
+  <joint name="realsense_mount_j" type="fixed">
+    <parent link="base_link"/><child link="realsense_mount"/>
+    <origin xyz="${CL/2-0.02} 0 ${CH*0.6}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- D455 本体 (124×26×29mm) -->
+  <link name="realsense_link">
+    <visual>
+      <geometry><box size="0.124 0.026 0.029"/></geometry>
+      <material name="scout_dark"/>
+    </visual>
+  </link>
+  <joint name="realsense_joint" type="fixed">
+    <parent link="realsense_mount"/><child link="realsense_link"/>
+    <!-- 前倾 15° 用于近距地面检测 -->
+    <origin xyz="0.07 0 0" rpy="0 -0.262 0"/>
+  </joint>
+
+  <!-- D455 双目镜头 (左/右) -->
+  <link name="realsense_lens_l">
+    <visual>
+      <geometry><cylinder radius="0.008" length="0.003"/></geometry>
+      <material name="scout_lens"/>
+    </visual>
+  </link>
+  <joint name="realsense_lens_l_j" type="fixed">
+    <parent link="realsense_link"/><child link="realsense_lens_l"/>
+    <origin xyz="0.064 0.025 0" rpy="0 1.5708 0"/>
+  </joint>
+
+  <link name="realsense_lens_r">
+    <visual>
+      <geometry><cylinder radius="0.008" length="0.003"/></geometry>
+      <material name="scout_lens"/>
+    </visual>
+  </link>
+  <joint name="realsense_lens_r_j" type="fixed">
+    <parent link="realsense_link"/><child link="realsense_lens_r"/>
+    <origin xyz="0.064 -0.025 0" rpy="0 1.5708 0"/>
+  </joint>
+
+  <!-- D455 投射器 (红外点阵) -->
+  <link name="realsense_projector">
+    <visual>
+      <geometry><cylinder radius="0.012" length="0.005"/></geometry>
+      <material name="scout_accent"/>
+    </visual>
+  </link>
+  <joint name="realsense_projector_j" type="fixed">
+    <parent link="realsense_link"/><child link="realsense_projector"/>
+    <origin xyz="0.064 0 0" rpy="0 1.5708 0"/>
   </joint>
 
   <!-- ── 毫米波雷达 (AWR1642, 前方安装) ── -->

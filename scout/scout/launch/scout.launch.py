@@ -78,7 +78,16 @@ def generate_launch_description():
                 )
             ],
         ),
-        TimerAction(period=3.0, actions=[Node(package="scout", executable="life_map_node", output="screen")]),
+        TimerAction(period=3.0, actions=[
+            Node(package="scout", executable="life_map_node", output="screen"),
+            # 地形分析 (参考 PolarBear terrain_analysis)
+            Node(package="scout", executable="terrain_analysis",
+                 parameters=[{"use_3d_lidar": False, "max_range": 10.0}],
+                 output="screen"),
+            # 废墟恢复行为 (参考 PolarBear pb_nav2_plugins)
+            Node(package="scout", executable="disaster_recovery",
+                 output="screen"),
+        ]),
         
         # RL Navigation (Only if use_nav2 is false)
         TimerAction(

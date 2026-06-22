@@ -185,7 +185,7 @@ class LifecycleManager(Node):
             elif state == LifecycleState.FINALIZED:
                 if self._restart_counts[name] < self.MAX_RESTART_ATTEMPTS:
                     self.get_logger().warn(
-                        f"Node {name} finalized, attempting restart")
+                        f"Node {node_name} finalized, attempting restart")
                     self._attempt_restart(name)
 
         self._publish_status()
@@ -223,7 +223,7 @@ class LifecycleManager(Node):
 
         if count > self.MAX_RESTART_ATTEMPTS:
             self.get_logger().error(
-                f"Node {name} failed after {count} restart attempts")
+                f"Node {node_name} failed after {count} restart attempts")
             return
 
         self.get_logger().info(

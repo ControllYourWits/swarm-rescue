@@ -108,6 +108,12 @@ def generate_launch_description():
                      parameters=[{"use_sim": True}], output="screen"),
                 Node(package="scout", executable="life_map_node",
                      parameters=[{"use_sim": True}], output="screen"),
+                # 地形分析 (2D LiDAR 降级模式)
+                Node(package="scout", executable="terrain_analysis",
+                     parameters=[{"use_3d_lidar": False}], output="screen"),
+                # 废墟恢复行为
+                Node(package="scout", executable="disaster_recovery",
+                     output="screen"),
                 Node(
                     package="scout",
                     executable="rl_nav_node",
