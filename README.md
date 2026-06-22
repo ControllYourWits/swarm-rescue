@@ -606,7 +606,9 @@ swarm_rescue/
 │   │   ├── rl_nav_node.py                  #     RL ONNX 推理局部导航
 │   │   ├── radar_processor.py              #     AWR1642 毫米波生命体征处理
 │   │   ├── life_map_node.py                #     生命概率栅格地图 + 目标发布
-│   │   └── nav2_goal_bridge.py             #     Nav2 导航目标桥接 (可选)
+│   │   ├── nav2_goal_bridge.py             #     Nav2 导航目标桥接 (可选)
+│   │   ├── terrain_analysis.py             #     ★ RANSAC 地形分析 (参考 PolarBear)
+│   │   └── disaster_recovery.py            #     ★ 废墟卡死恢复 (5步渐进)
 │   ├── scout/launch/                       #   启动文件
 │   │   └── scout.launch.py                 #     单机启动 (串口/雷达/SLAM/导航)
 │   └── scout/config/                       #   Nav2 参数
@@ -636,6 +638,7 @@ swarm_rescue/
 ├── swarm_bringup/                          # 统一启动与仿真 (ROS2 包)
 │   ├── swarm_bringup/
 │   │   ├── sim_swarm_node.py               #     轻量仿真器 (odom/laser/life)
+│   │   ├── lifecycle_manager.py            #     ★ 节点生命周期管理 (参考 Nav2)
 │   │   └── shared/                         #     ★ 跨包共用模块 (所有节点共享)
 │   │       ├── swarm_protocol.py           #       通信协议 Python 版
 │   │       ├── qos_profiles.py             #       DDS QoS 配置

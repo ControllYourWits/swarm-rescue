@@ -19,4 +19,5 @@
   <export>
     <build_type>ament_python</build_type>
   </export>
+  <depend>swarm_bringup</depend>
 </package>
