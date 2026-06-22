@@ -1,257 +1,98 @@
 <?xml version="1.0"?>
 <!--
-  rescue_robot.urdf.xacro — 三机协同救援集群统一 URDF
+  rescue_robot.urdf.xacro — 三机统一 URDF (模块化版)
 
-  通过 robot_name 参数切换机器人外观和专属传感器
-  使用 RoboMaster 标准机器人网格资源 (rmoss_gz_resources)
+  通过 robot_name 参数切换机器人类型:
+    xacro rescue_robot.urdf.xacro robot_name:=scout
 
-  用法:
-    xacro rescue_robot.urdf.xacro robot_name:=scout robot_color:="0.18 0.42 0.82 1"
+  架构: 使用 common/ 共用模块, 与 scout/carrier/specialist.xacro 一致
+  网格: linorobot2 chassis.dae + tire.dae (坐标系正确)
+  兼容: RViz2 (robot_state_publisher) + Gazebo (spawn_entity)
 -->
-<robot name="rescue_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="rescue_robot" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!-- ═══ 全局参数 ═══ -->
+  <!-- ═══ 参数 ═══ -->
   <xacro:arg name="robot_name" default="scout"/>
   <xacro:arg name="robot_color" default="0.18 0.42 0.82 1"/>
 
-  <!-- 尺寸参数 (按机器人类型切换) -->
+  <!-- ═══ 共用模块 ═══ -->
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/common_properties.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/chassis.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/mecanum_wheel.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/sensors.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/gazebo_plugins.xacro"/>
+
+  <!-- ═══ 尺寸参数 (按机器人类型切换) ═══ -->
   <xacro:property name="CL" value="${0.55 if robot_name == 'carrier' else (0.45 if robot_name == 'specialist' else 0.42)}"/>
   <xacro:property name="CW" value="${0.40 if robot_name == 'carrier' else (0.35 if robot_name == 'specialist' else 0.32)}"/>
-  <xacro:property name="CH" value="${0.22 if robot_name == 'carrier' else (0.20 if robot_name == 'specialist' else 0.13)}"/>
+  <xacro:property name="CH" value="${0.129}"/>
   <xacro:property name="WR" value="${0.065 if robot_name == 'carrier' else (0.055 if robot_name == 'specialist' else 0.048)}"/>
   <xacro:property name="WW" value="${0.035 if robot_name == 'carrier' else (0.030 if robot_name == 'specialist' else 0.028)}"/>
-  <xacro:property name="WS" value="${0.34 if robot_name == 'carrier' else (0.30 if robot_name == 'specialist' else 0.28)}"/>
   <xacro:property name="M"  value="${12.0 if robot_name == 'carrier' else (8.0 if robot_name == 'specialist' else 6.5)}"/>
-  <xacro:property name="BX" value="${CL/3}"/>
-  <xacro:property name="BY" value="${WS/2}"/>
+  <xacro:property name="BX" value="${0.185 if robot_name == 'carrier' else (0.150 if robot_name == 'specialist' else 0.160)}"/>
+  <xacro:property name="BY" value="${0.170 if robot_name == 'carrier' else (0.150 if robot_name == 'specialist' else 0.140)}"/>
+  <xacro:property name="WZ" value="${-0.048 if robot_name == 'carrier' else (-0.044 if robot_name == 'specialist' else -0.040)}"/>
 
-  <!-- 材质 -->
-  <material name="body_color"><color rgba="$(arg robot_color)"/></material>
-  <material name="frame_color"><color rgba="0.22 0.22 0.24 1"/></material>
-  <material name="accent_color"><color rgba="0.95 0.75 0.10 1"/></material>
-  <material name="dark_color"><color rgba="0.06 0.06 0.08 1"/></material>
-  <material name="tire_color"><color rgba="0.12 0.12 0.12 1"/></material>
-  <material name="hub_color"><color rgba="0.55 0.55 0.58 1"/></material>
-  <material name="lens_color"><color rgba="0.12 0.12 0.18 1"/></material>
+  <!-- Gazebo 颜色 -->
+  <xacro:property name="GR" value="${0.15 if robot_name == 'carrier' else (0.92 if robot_name == 'specialist' else 0.18)}"/>
+  <xacro:property name="GG" value="${0.75 if robot_name == 'carrier' else (0.52 if robot_name == 'specialist' else 0.42)}"/>
+  <xacro:property name="GB" value="${0.30 if robot_name == 'carrier' else (0.12 if robot_name == 'specialist' else 0.82)}"/>
 
-  <!-- ═══ base_link ═══ -->
-  <link name="base_link"/>
+  <!-- ═══ 底盘 ═══ -->
+  <xacro:chassis
+    length="${CL}" width="${CW}" height="${CH}" mass="${M}"
+    wheel_radius="${WR}" wheel_pos_z="${WZ}"
+    mesh_file="package://swarm_bringup/meshes/shared/chassis.dae"
+    body_material="body_blue" gazebo_r="${GR}" gazebo_g="${GG}" gazebo_b="${GB}"/>
 
-  <!-- ═══ 底盘 (使用 RoboMaster 网格) ═══ -->
-  <link name="chassis">
-    <visual>
-      <origin xyz="0 0 0.055" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://swarm_bringup/meshes/shared/chassis_base.dae"/>
-      </geometry>
-      <material name="body_color"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
-      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
-    </collision>
-    <inertial>
-      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
-      <mass value="${M}"/>
-      <inertia ixx="${M*0.02}" ixy="0" ixz="0" iyy="${M*0.03}" iyz="0" izz="${M*0.04}"/>
-    </inertial>
-  </link>
-  <joint name="base_to_chassis" type="fixed">
-    <parent link="base_link"/><child link="chassis"/>
-    <origin xyz="0 0 0.076" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ═══ 云台底座 (视觉用 RoboMaster 网格) ═══ -->
-  <link name="gimbal_base">
-    <visual>
-      <origin xyz="0 0 0.06" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://swarm_bringup/meshes/shared/gimbal_yaw.dae"/>
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0.0885" rpy="0 0 0"/>
-      <geometry><box size="0.065 0.117 0.177"/></geometry>
-    </collision>
-  </link>
-  <joint name="gimbal_base_j" type="fixed">
-    <parent link="chassis"/><child link="gimbal_base"/>
-    <origin xyz="0 0 0.1376" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ═══ 麦克纳姆轮 (使用 RoboMaster 网格) ═══ -->
-  <xacro:macro name="wheel" params="name x y side">
-    <joint name="${name}_joint" type="continuous">
-      <parent link="chassis"/><child link="${name}_link"/>
-      <origin xyz="${x} ${y} 0" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
-    </joint>
-    <link name="${name}_link">
-      <visual>
-        <geometry>
-          <mesh filename="package://swarm_bringup/meshes/shared/wheel_${side}.dae"/>
-        </geometry>
-      </visual>
-      <collision>
-        <geometry><cylinder radius="${WR}" length="${WW}"/></geometry>
-      </collision>
-      <inertial>
-        <mass value="0.15"/>
-        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0002"/>
-      </inertial>
-    </link>
-  </xacro:macro>
-
-  <xacro:wheel name="fl" x="${BX}"  y="${BY}"  side="left"/>
-  <xacro:wheel name="fr" x="${BX}"  y="${-BY}" side="right"/>
-  <xacro:wheel name="rl" x="${-BX}" y="${BY}"  side="right"/>
-  <xacro:wheel name="rr" x="${-BX}" y="${-BY}" side="left"/>
+  <!-- ═══ 麦轮 ═══ -->
+  <xacro:mecanum_wheel side="front_left"  radius="${WR}" width="${WW}"
+    pos_x="${BX}"  pos_y="${BY}"  pos_z="${WZ}" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
+  <xacro:mecanum_wheel side="front_right" radius="${WR}" width="${WW}"
+    pos_x="${BX}"  pos_y="${-BY}" pos_z="${WZ}" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
+  <xacro:mecanum_wheel side="rear_left"   radius="${WR}" width="${WW}"
+    pos_x="${-BX}" pos_y="${BY}"  pos_z="${WZ}" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
+  <xacro:mecanum_wheel side="rear_right"  radius="${WR}" width="${WW}"
+    pos_x="${-BX}" pos_y="${-BY}" pos_z="${WZ}" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
 
   <!-- ═══ Scout 专属传感器 ═══ -->
   <xacro:if value="${robot_name == 'scout'}">
-    <!-- RPLidar A1 -->
-    <link name="lidar_link">
-      <visual><geometry><cylinder radius="0.038" length="0.025"/></geometry><material name="dark_color"/></visual>
-    </link>
-    <joint name="lidar_joint" type="fixed">
-      <parent link="gimbal_base"/><child link="lidar_link"/>
-      <origin xyz="0.06 0 0.16" rpy="0 0 0"/>
-    </joint>
-    <!-- Livox Mid-360 -->
-    <link name="livox_link">
-      <visual><geometry><box size="0.065 0.065 0.052"/></geometry><material name="dark_color"/></visual>
-    </link>
-    <joint name="livox_joint" type="fixed">
-      <parent link="chassis"/><child link="livox_link"/>
-      <origin xyz="0.06 0 0.16" rpy="0 -0.262 0"/>
-    </joint>
-    <!-- 毫米波雷达 -->
-    <link name="radar_link">
-      <visual><geometry><box size="0.065 0.045 0.012"/></geometry><material name="dark_color"/></visual>
-    </link>
-    <joint name="radar_joint" type="fixed">
-      <parent link="chassis"/><child link="radar_link"/>
-      <origin xyz="${CL/2-0.01} 0 0.065" rpy="0 0 0"/>
-    </joint>
-    <!-- UWB -->
-    <link name="uwb_tag">
-      <visual><geometry><box size="0.025 0.025 0.008"/></geometry><material name="accent_color"/></visual>
-    </link>
-    <joint name="uwb_tag_j" type="fixed">
-      <parent link="chassis"/><child link="uwb_tag"/>
-      <origin xyz="-0.10 0 0.14" rpy="0 0 0"/>
+    <xacro:lidar_2d x="0.06" y="0" z="0.20"/>
+    <xacro:lidar_3d x="0.06" y="0" z="0.16"/>
+    <xacro:depth_camera x="0.21" y="0" z="0.10"/>
+    <xacro:radar_mmw x="0.20" y="0" z="0.07"/>
+    <xacro:imu_sensor/>
+    <xacro:uwb_tag x="-0.10" y="0" z="0.14"/>
+    <!-- laser_link (TF) -->
+    <link name="laser_link"/>
+    <joint name="laser_joint" type="fixed">
+      <parent link="lidar_link"/><child link="laser_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
   </xacro:if>
 
-  <!-- ═══ Carrier 专属: 物资舱 ═══ -->
+  <!-- ═══ Carrier 专属 ═══ -->
   <xacro:if value="${robot_name == 'carrier'}">
-    <link name="supply_box">
-      <visual><geometry><box size="0.20 0.30 0.12"/></geometry><material name="dark_color"/></visual>
-      <collision><geometry><box size="0.20 0.30 0.12"/></geometry></collision>
-      <inertial><mass value="2.0"/><inertia ixx="0.02" ixy="0" ixz="0" iyy="0.03" iyz="0" izz="0.03"/></inertial>
-    </link>
-    <joint name="supply_box_j" type="fixed">
-      <parent link="chassis"/><child link="supply_box"/>
-      <origin xyz="${-CL/4} 0 ${CH+0.06}" rpy="0 0 0"/>
-    </joint>
-    <!-- 4G 路由器 + 天线 -->
-    <link name="router_box">
-      <visual><geometry><box size="0.10 0.08 0.025"/></geometry><material name="dark_color"/></visual>
-    </link>
-    <joint name="router_box_j" type="fixed">
-      <parent link="chassis"/><child link="router_box"/>
-      <origin xyz="0.12 0 ${CH+0.012}" rpy="0 0 0"/>
-    </joint>
-    <link name="ant_sma1">
-      <visual><geometry><cylinder radius="0.005" length="0.12"/></geometry><material name="hub_color"/></visual>
-    </link>
-    <joint name="ant_sma1_j" type="fixed">
-      <parent link="router_box"/><child link="ant_sma1"/>
-      <origin xyz="0.035 0.025 0.075" rpy="0 0 0"/>
-    </joint>
-    <link name="ant_sma2">
-      <visual><geometry><cylinder radius="0.005" length="0.12"/></geometry><material name="hub_color"/></visual>
-    </link>
-    <joint name="ant_sma2_j" type="fixed">
-      <parent link="router_box"/><child link="ant_sma2"/>
-      <origin xyz="0.035 -0.025 0.075" rpy="0 0 0"/>
-    </joint>
+    <xacro:supply_bay/>
+    <xacro:router_antenna/>
+    <xacro:imu_sensor/>
+    <xacro:uwb_tag x="-0.15" y="0" z="0.14"/>
   </xacro:if>
 
-  <!-- ═══ Specialist 专属: 热成像 + 机械臂 ═══ -->
+  <!-- ═══ Specialist 专属 ═══ -->
   <xacro:if value="${robot_name == 'specialist'}">
-    <!-- 热成像模组 -->
-    <link name="thermal_housing">
-      <visual><geometry><box size="0.035 0.035 0.025"/></geometry><material name="dark_color"/></visual>
-    </link>
-    <joint name="thermal_housing_j" type="fixed">
-      <parent link="chassis"/><child link="thermal_housing"/>
-      <origin xyz="${CL/2-0.02} -0.05 ${CH+0.012}" rpy="0 0 0"/>
-    </joint>
-    <!-- 机械臂底座 -->
-    <link name="arm_base">
-      <visual><geometry><cylinder radius="0.035" length="0.015"/></geometry><material name="dark_color"/></visual>
-    </link>
-    <joint name="arm_base_j" type="fixed">
-      <parent link="chassis"/><child link="arm_base"/>
-      <origin xyz="${-CL*0.22} 0 ${CH+0.008}" rpy="0 0 0"/>
-    </joint>
-    <!-- 机械臂大臂 -->
-    <link name="arm_link1">
-      <visual><geometry><box size="0.035 0.035 0.15"/></geometry><material name="accent_color"/></visual>
-    </link>
-    <joint name="arm_j1" type="revolute">
-      <parent link="arm_base"/><child link="arm_link1"/>
-      <origin xyz="0 0 0.022" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
-      <limit lower="-1.57" upper="1.57" effort="10" velocity="3.0"/>
-    </joint>
-    <!-- 机械臂小臂 -->
-    <link name="arm_link2">
-      <visual><geometry><box size="0.028 0.028 0.12"/></geometry><material name="accent_color"/></visual>
-    </link>
-    <joint name="arm_j2" type="revolute">
-      <parent link="arm_link1"/><child link="arm_link2"/>
-      <origin xyz="0 0 0.15" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
-      <limit lower="-1.57" upper="1.57" effort="10" velocity="3.0"/>
-    </joint>
-    <!-- 夹爪 -->
-    <link name="gripper_base">
-      <visual><geometry><box size="0.035 0.030 0.015"/></geometry><material name="dark_color"/></visual>
-    </link>
-    <joint name="gripper_j" type="revolute">
-      <parent link="arm_link2"/><child link="gripper_base"/>
-      <origin xyz="0 0 0.12" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-1.57" upper="1.57" effort="5" velocity="2.0"/>
-    </joint>
+    <xacro:thermal_camera x="0.20" y="-0.05" z="0.08"/>
+    <xacro:robot_arm/>
+    <xacro:led_bar x="0.20" y="0" z="0.08"/>
+    <xacro:imu_sensor/>
+    <xacro:uwb_tag x="-0.12" y="0" z="0.14"/>
   </xacro:if>
 
-  <!-- ═══ Gazebo 插件 ═══ -->
-  <gazebo reference="chassis">
-    <material>Gazebo/Blue</material>
-  </gazebo>
-
-  <gazebo>
-    <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
-      <ros><namespace>$(arg robot_name)</namespace></ros>
-      <update_rate>100</update_rate>
-      <left_joint>fl_joint rl_joint</left_joint>
-      <right_joint>fr_joint rr_joint</right_joint>
-      <wheel_separation>${WS}</wheel_separation>
-      <wheel_diameter>${2*WR}</wheel_diameter>
-      <max_wheel_torque>10.0</max_wheel_torque>
-      <command_topic>cmd_vel</command_topic>
-      <odometry_topic>odom</odometry_topic>
-      <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_link</robot_base_frame>
-    </plugin>
-    <plugin name="imu" filename="libgazebo_ros_imu_sensor.so">
-      <ros><namespace>$(arg robot_name)</namespace></ros>
-      <update_rate>200</update_rate>
-      <body_name>chassis</body_name>
-      <topic>imu/data</topic>
-    </plugin>
-  </gazebo>
+  <!-- ═══ Gazebo 插件 (麦轮+LiDAR+IMU) ═══ -->
+  <xacro:gazebo_mecanum namespace="${robot_name}"
+    wheel_base="${BX * 2}" wheel_separation="${BY * 2}" wheel_radius="${WR}"/>
 </robot>

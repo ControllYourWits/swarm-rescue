@@ -11,6 +11,7 @@
     <link name="lidar_link">
       <visual><geometry><cylinder radius="0.038" length="0.025"/></geometry><material name="dark"/></visual>
       <collision><geometry><cylinder radius="0.038" length="0.025"/></geometry></collision>
+      <inertial><mass value="0.1"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.00005"/></inertial>
     </link>
     <joint name="lidar_joint" type="fixed">
       <parent link="base_link"/><child link="lidar_link"/>
@@ -23,6 +24,7 @@
     <link name="livox_link">
       <visual><geometry><box size="0.065 0.065 0.052"/></geometry><material name="dark"/></visual>
       <collision><geometry><box size="0.065 0.065 0.052"/></geometry></collision>
+      <inertial><mass value="0.2"/><inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/></inertial>
     </link>
     <joint name="livox_joint" type="fixed">
       <parent link="base_link"/><child link="livox_link"/>
@@ -35,6 +37,7 @@
     <link name="realsense_link">
       <visual><geometry><box size="0.124 0.026 0.029"/></geometry><material name="dark"/></visual>
       <collision><geometry><box size="0.124 0.026 0.029"/></geometry></collision>
+      <inertial><mass value="0.12"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/></inertial>
     </link>
     <joint name="realsense_joint" type="fixed">
       <parent link="base_link"/><child link="realsense_link"/>
@@ -47,6 +50,7 @@
     <link name="radar_link">
       <visual><geometry><box size="0.065 0.045 0.012"/></geometry><material name="dark"/></visual>
       <collision><geometry><box size="0.065 0.045 0.012"/></geometry></collision>
+      <inertial><mass value="0.05"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial>
     </link>
     <joint name="radar_joint" type="fixed">
       <parent link="base_link"/><child link="radar_link"/>
@@ -79,6 +83,7 @@
     <link name="thermal_link">
       <visual><geometry><box size="0.035 0.035 0.025"/></geometry><material name="dark"/></visual>
       <collision><geometry><box size="0.035 0.035 0.025"/></geometry></collision>
+      <inertial><mass value="0.03"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial>
     </link>
     <joint name="thermal_joint" type="fixed">
       <parent link="base_link"/><child link="thermal_link"/>
