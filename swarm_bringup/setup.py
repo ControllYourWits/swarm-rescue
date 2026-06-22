@@ -35,8 +35,8 @@ if os.path.isdir(_launch_dir):
     _launch_py = [os.path.join("launch", f) for f in os.listdir(_launch_dir) if f.endswith(".py")]
     _data_files.append((f"share/{package_name}/launch", _launch_py))
 
-# Add config, worlds, urdf (may have subdirectories)
-for subdir in ["config", "worlds", "urdf"]:
+# Add config, worlds, urdf, meshes (may have subdirectories)
+for subdir in ["config", "worlds", "urdf", "meshes"]:
     _data_files.extend(_collect_files(subdir))
 
 setup(
