@@ -238,9 +238,8 @@
       </joint>
     </model>
 
-    <!-- 机器人出生点 -->
-    <include><uri>model://scout</uri><name>scout_robot</name><pose>0 0 0.05 0 0 0</pose></include>
-    <include><uri>model://carrier</uri><name>carrier_robot</name><pose>-2 2 0.05 0 0 0</pose></include>
-    <include><uri>model://specialist</uri><name>specialist_robot</name><pose>2 2 0.05 0 0 0</pose></include>
+    <!-- 机器人出生点 (由 sim.launch.py 的 spawn_entity.py 生成) -->
+    <!-- 坐标: Scout(0,0), Carrier(-2,2), Specialist(2,2) -->
+
   </world>
 </sdf>
