@@ -7,7 +7,7 @@ robot_state.py — 三机通用状态机
   - 发布状态到 /<robot>/robot_state 供协调器和其他机器人参考
 
 用法:
-  from robot_state import RobotStateMachine, RobotState
+  from swarm_bringup.shared.robot_state import RobotStateMachine, RobotState
 
   sm = RobotStateMachine("scout")
   sm.transition(RobotState.EXPLORING)

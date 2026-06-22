@@ -6,7 +6,7 @@
   base_footprint → base_link 的 joint 高度自动计算
 -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro" xmlns:gz="http://gazebosim.org/schema">
-  <xacro:macro name="chassis" params="length width height mass wheel_radius wheel_pos_z mesh_file body_material">
+  <xacro:macro name="chassis" params="length width height mass wheel_radius wheel_pos_z mesh_file body_material gazebo_r gazebo_g gazebo_b">
     <!-- base_footprint (地面参考点) -->
     <link name="base_footprint"/>
 
@@ -44,12 +44,12 @@
       </inertial>
     </link>
 
-    <!-- Gazebo 材质 -->
+    <!-- Gazebo 材质 (参数化颜色) -->
     <gazebo reference="base_link">
       <visual>
         <material>
-          <ambient>0.18 0.42 0.82 1.0</ambient>
-          <diffuse>0.18 0.42 0.82 1.0</diffuse>
+          <ambient>${gazebo_r} ${gazebo_g} ${gazebo_b} 1.0</ambient>
+          <diffuse>${gazebo_r} ${gazebo_g} ${gazebo_b} 1.0</diffuse>
           <specular>0.3 0.3 0.3 1.0</specular>
           <emissive>0.0 0.0 0.0 0.0</emissive>
         </material>

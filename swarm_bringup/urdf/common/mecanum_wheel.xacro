@@ -6,7 +6,8 @@
   Gazebo 中为每个轮子设置正确的摩擦方向 (fdir1)
 -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro" xmlns:gz="http://gazebosim.org/schema">
-  <xacro:macro name="mecanum_wheel" params="side radius width pos_x pos_y pos_z mass mesh_file pi">
+  <xacro:macro name="mecanum_wheel" params="side radius width pos_x pos_y pos_z mass mesh_file">
+    <xacro:property name="pi" value="3.14159265358979"/>
     <link name="${side}_wheel_link">
       <visual>
         <!-- 关键: mesh 旋转 90° 使轮轴对齐 Y 轴 -->

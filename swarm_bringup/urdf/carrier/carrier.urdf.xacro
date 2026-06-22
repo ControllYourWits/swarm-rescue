@@ -16,21 +16,21 @@
   <xacro:chassis length="0.55" width="0.40" height="0.129" mass="12.0"
     wheel_radius="0.065" wheel_pos_z="-0.048"
     mesh_file="package://swarm_bringup/meshes/shared/chassis.dae"
-    body_material="body_green"/>
+    body_material="body_green" gazebo_r="0.15" gazebo_g="0.75" gazebo_b="0.30"/>
 
   <!-- 麦轮 -->
   <xacro:mecanum_wheel side="front_left"  radius="0.065" width="0.035"
     pos_x="0.185" pos_y="0.170" pos_z="-0.048" mass="0.25"
-    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
   <xacro:mecanum_wheel side="front_right" radius="0.065" width="0.035"
     pos_x="0.185" pos_y="-0.170" pos_z="-0.048" mass="0.25"
-    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
   <xacro:mecanum_wheel side="rear_left"   radius="0.065" width="0.035"
     pos_x="-0.185" pos_y="0.170" pos_z="-0.048" mass="0.25"
-    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
   <xacro:mecanum_wheel side="rear_right"  radius="0.065" width="0.035"
     pos_x="-0.185" pos_y="-0.170" pos_z="-0.048" mass="0.25"
-    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae"/>
 
   <!-- Carrier 专属 -->
   <xacro:supply_bay/>

@@ -31,7 +31,6 @@ def generate_launch_description():
         DeclareLaunchArgument("enable_scout",      default_value="true"),
         DeclareLaunchArgument("enable_carrier",    default_value="true"),
         DeclareLaunchArgument("enable_specialist", default_value="true"),
-        DeclareLaunchArgument("use_sim",           default_value="false"),
         DeclareLaunchArgument("scout_port",        default_value="/dev/ttyS3"),
         DeclareLaunchArgument("carrier_port",      default_value="/dev/ttyS4"),
         DeclareLaunchArgument("specialist_port",   default_value="/dev/ttyS5"),
