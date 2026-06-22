@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+  mecanum_wheel.xacro — 麦克纳姆轮宏定义 (参考 linorobot2 mecanum_wheel.urdf.xacro)
+
+  关键: mesh 需要 rpy="pi/2 0 0" 旋转 90° 才能正确对齐
+  Gazebo 中为每个轮子设置正确的摩擦方向 (fdir1)
+-->
+<robot xmlns:xacro="http://ros.org/wiki/xacro" xmlns:gz="http://gazebosim.org/schema">
+  <xacro:macro name="mecanum_wheel" params="side radius width pos_x pos_y pos_z mass mesh_file pi">
+    <link name="${side}_wheel_link">
+      <visual>
+        <!-- 关键: mesh 旋转 90° 使轮轴对齐 Y 轴 -->
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <xacro:if value="${mesh_file == ''}">
+            <cylinder radius="${radius}" length="${width}"/>
+          </xacro:if>
+          <xacro:unless value="${mesh_file == ''}">
+            <mesh filename="${mesh_file}" scale="1 1 1"/>
+          </xacro:unless>
+        </geometry>
+        <material name="tire"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${width}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia
+          ixx="${(2/5) * mass * (radius * radius)}"
+          ixy="0" ixz="0"
+          iyy="${(2/5) * mass * (radius * radius)}"
+          iyz="0"
+          izz="${(2/5) * mass * (radius * radius)}"/>
+      </inertial>
+    </link>
+
+    <!-- Gazebo 麦轮摩擦参数 -->
+    <gazebo reference="${side}_wheel_link">
+      <collision>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.5</mu>
+              <mu2>0.7</mu2>
+              <kp>200000.0</kp>
+              <kd>5000.0</kd>
+              <xacro:if value="${side == 'front_left'}">
+                <fdir1 gz:expressed_in="base_link">1 -1 0</fdir1>
+              </xacro:if>
+              <xacro:if value="${side == 'rear_left'}">
+                <fdir1 gz:expressed_in="base_link">1 1 0</fdir1>
+              </xacro:if>
+              <xacro:if value="${side == 'front_right'}">
+                <fdir1 gz:expressed_in="base_link">1 1 0</fdir1>
+              </xacro:if>
+              <xacro:if value="${side == 'rear_right'}">
+                <fdir1 gz:expressed_in="base_link">1 -1 0</fdir1>
+              </xacro:if>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+    </gazebo>
+
+    <!-- Gazebo 材质 -->
+    <gazebo reference="${side}_wheel_link">
+      <visual>
+        <material>
+          <ambient>0.12 0.12 0.12 1.0</ambient>
+          <diffuse>0.12 0.12 0.12 1.0</diffuse>
+          <specular>0.1 0.1 0.1 1.0</specular>
+          <emissive>0.0 0.0 0.0 0.0</emissive>
+        </material>
+      </visual>
+    </gazebo>
+
+    <!-- 轮子关节 (continuous = 可旋转) -->
+    <joint name="${side}_wheel_joint" type="continuous">
+      <axis xyz="0 1 0"/>
+      <parent link="base_link"/>
+      <child link="${side}_wheel_link"/>
+      <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+</robot>

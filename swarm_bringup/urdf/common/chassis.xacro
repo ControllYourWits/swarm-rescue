@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+  chassis.xacro — 底盘宏定义 (参考 linorobot2 base.urdf.xacro)
+
+  使用 DAE 网格文件显示, 使用 box 做碰撞体
+  base_footprint → base_link 的 joint 高度自动计算
+-->
+<robot xmlns:xacro="http://ros.org/wiki/xacro" xmlns:gz="http://gazebosim.org/schema">
+  <xacro:macro name="chassis" params="length width height mass wheel_radius wheel_pos_z mesh_file body_material">
+    <!-- base_footprint (地面参考点) -->
+    <link name="base_footprint"/>
+
+    <!-- base_link (底盘主体) -->
+    <link name="base_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <xacro:if value="${mesh_file == ''}">
+            <box size="${length} ${width} ${height}"/>
+          </xacro:if>
+          <xacro:unless value="${mesh_file == ''}">
+            <mesh filename="${mesh_file}" scale="1 1 1"/>
+          </xacro:unless>
+        </geometry>
+        <material name="${body_material}"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${length} ${width} ${height}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia
+          ixx="${(1/12) * mass * ((width * width) + (height * height))}"
+          ixy="0.0" ixz="0.0"
+          iyy="${(1/12) * mass * ((length * length) + (height * height))}"
+          iyz="0.0"
+          izz="${(1/12) * mass * ((length * length) + (width * width))}"/>
+      </inertial>
+    </link>
+
+    <!-- Gazebo 材质 -->
+    <gazebo reference="base_link">
+      <visual>
+        <material>
+          <ambient>0.18 0.42 0.82 1.0</ambient>
+          <diffuse>0.18 0.42 0.82 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+          <emissive>0.0 0.0 0.0 0.0</emissive>
+        </material>
+      </visual>
+    </gazebo>
+
+    <!-- base_footprint → base_link (自动计算离地高度) -->
+    <joint name="base_to_footprint" type="fixed">
+      <parent link="base_footprint"/>
+      <child link="base_link"/>
+      <origin xyz="0 0 ${wheel_radius - wheel_pos_z}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+</robot>

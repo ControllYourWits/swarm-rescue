@@ -1,242 +1,55 @@
 <?xml version="1.0"?>
 <!--
-  Scout 探测先遣机 URDF (基于 RoboMaster 标准机器人模型)
+  scout.urdf.xacro — Scout 探测先遣机
 
-  网格资源来源: rmoss_gz_resources/rmua19_standard_robot
-  尺寸适配: 420×320mm 底盘, 48mm 麦轮, 6.5kg
-
-  兼容: RViz2 (robot_state_publisher) + Gazebo (spawn_entity)
+  传感器: RPLidar + Livox Mid-360 + RealSense D455 + AWR1642 + UWB + IMU
+  尺寸: 420×320mm, 6.5kg
+  网格: linorobot2 chassis.dae + tire.dae (坐标系已对齐)
 -->
-<robot name="scout" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="scout" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!-- ═══ 参数定义 ═══ -->
-  <xacro:property name="CL" value="0.42"/>   <!-- 底盘长度 m -->
-  <xacro:property name="CW" value="0.32"/>   <!-- 底盘宽度 m -->
-  <xacro:property name="CH" value="0.13"/>   <!-- 底盘高度 m -->
-  <xacro:property name="WR" value="0.048"/>  <!-- 轮半径 m -->
-  <xacro:property name="WW" value="0.028"/>  <!-- 轮宽度 m -->
-  <xacro:property name="BX" value="0.207"/>  <!-- 轮距 X (半轴距) -->
-  <xacro:property name="BY" value="0.160"/>  <!-- 轮距 Y (半轮距) -->
-  <xacro:property name="M"  value="6.5"/>    <!-- 总质量 kg -->
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/common_properties.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/chassis.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/mecanum_wheel.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/sensors.xacro"/>
 
-  <!-- ═══ 材质 ═══ -->
-  <material name="scout_body"><color rgba="0.18 0.42 0.82 1.0"/></material>
-  <material name="scout_dark"><color rgba="0.06 0.06 0.08 1.0"/></material>
-  <material name="scout_frame"><color rgba="0.22 0.22 0.24 1.0"/></material>
-  <material name="scout_accent"><color rgba="0.95 0.75 0.10 1.0"/></material>
-  <material name="scout_tire"><color rgba="0.12 0.12 0.12 1.0"/></material>
-  <material name="scout_hub"><color rgba="0.55 0.55 0.58 1.0"/></material>
-  <material name="scout_lens"><color rgba="0.15 0.15 0.20 1.0"/></material>
+  <!-- 底盘 -->
+  <xacro:chassis length="0.42" width="0.32" height="0.129" mass="6.5"
+    wheel_radius="0.048" wheel_pos_z="-0.040"
+    mesh_file="package://swarm_bringup/meshes/shared/chassis.dae"
+    body_material="body_blue"/>
 
-  <!-- ═══ base_link ═══ -->
-  <link name="base_link"/>
+  <!-- 麦轮 (4个) -->
+  <xacro:mecanum_wheel side="front_left"  radius="0.048" width="0.028"
+    pos_x="0.160" pos_y="0.140" pos_z="-0.040" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+  <xacro:mecanum_wheel side="front_right" radius="0.048" width="0.028"
+    pos_x="0.160" pos_y="-0.140" pos_z="-0.040" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+  <xacro:mecanum_wheel side="rear_left"   radius="0.048" width="0.028"
+    pos_x="-0.160" pos_y="0.140" pos_z="-0.040" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+  <xacro:mecanum_wheel side="rear_right"  radius="0.048" width="0.028"
+    pos_x="-0.160" pos_y="-0.140" pos_z="-0.040" mass="0.15"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
 
-  <!-- 底盘 (使用 RoboMaster 网格 + 简单碰撞体) -->
-  <link name="chassis">
-    <visual>
-      <origin xyz="0 0 0.055" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://swarm_bringup/meshes/scout/chassis_base.dae"/>
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
-      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
-    </collision>
-    <inertial>
-      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
-      <mass value="${M}"/>
-      <inertia ixx="0.08" ixy="0" ixz="0" iyy="0.12" iyz="0" izz="0.15"/>
-    </inertial>
-  </link>
-  <joint name="base_to_chassis" type="fixed">
-    <parent link="base_link"/><child link="chassis"/>
-    <origin xyz="0 0 0.076" rpy="0 0 0"/>
-  </joint>
+  <!-- Scout 传感器 -->
+  <xacro:lidar_2d x="0.06" y="0" z="0.20"/>
+  <xacro:lidar_3d x="0.06" y="0" z="0.16"/>
+  <xacro:depth_camera x="0.21" y="0" z="0.10"/>
+  <xacro:radar_mmw x="0.20" y="0" z="0.07"/>
+  <xacro:imu_sensor/>
+  <xacro:uwb_tag x="-0.10" y="0" z="0.14"/>
 
-  <!-- ═══ 麦克纳姆轮 (4 个, 使用 RoboMaster 网格) ═══ -->
-  <xacro:macro name="mecanum_wheel" params="name x y side">
-    <joint name="${name}_joint" type="continuous">
-      <parent link="chassis"/><child link="${name}_link"/>
-      <origin xyz="${x} ${y} 0" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
-    </joint>
-    <link name="${name}_link">
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <mesh filename="package://swarm_bringup/meshes/scout/wheel_${side}.dae"/>
-        </geometry>
-      </visual>
-      <collision>
-        <geometry><cylinder radius="${WR}" length="${WW}"/></geometry>
-      </collision>
-      <inertial>
-        <mass value="0.15"/>
-        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0002"/>
-      </inertial>
-    </link>
-  </xacro:macro>
-
-  <!-- 前左: wheel_left, 前右: wheel_right, 后左: wheel_right, 后右: wheel_left -->
-  <xacro:mecanum_wheel name="fl" x="${BX}"  y="${BY}"  side="left"/>
-  <xacro:mecanum_wheel name="fr" x="${BX}"  y="${-BY}" side="right"/>
-  <xacro:mecanum_wheel name="rl" x="${-BX}" y="${BY}"  side="right"/>
-  <xacro:mecanum_wheel name="rr" x="${-BX}" y="${-BY}" side="left"/>
-
-  <!-- ═══ 云台 (简化: 只有底座, 不含 yaw/pitch 关节, 用于传感器安装) ═══ -->
-  <link name="gimbal_base">
-    <visual>
-      <origin xyz="0 0 0.06" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://swarm_bringup/meshes/scout/gimbal_yaw.dae"/>
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0.0885" rpy="0 0 0"/>
-      <geometry><box size="0.065 0.117 0.177"/></geometry>
-    </collision>
-    <inertial>
-      <mass value="0.5"/>
-      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
-    </inertial>
-  </link>
-  <joint name="gimbal_base_j" type="fixed">
-    <parent link="chassis"/><child link="gimbal_base"/>
-    <origin xyz="0 0 0.1376" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ═══ RPLidar A1 (2D LiDAR, 顶部) ═══ -->
-  <link name="lidar_link">
-    <visual>
-      <geometry><cylinder radius="0.038" length="0.025"/></geometry>
-      <material name="scout_dark"/>
-    </visual>
-    <collision>
-      <geometry><cylinder radius="0.038" length="0.025"/></geometry>
-    </collision>
-  </link>
-  <joint name="lidar_joint" type="fixed">
-    <parent link="gimbal_base"/><child link="lidar_link"/>
-    <origin xyz="0.06 0 0.16" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ═══ Livox Mid-360 (3D LiDAR, 倾斜 15°) ═══ -->
-  <link name="livox_link">
-    <visual>
-      <geometry><box size="0.065 0.065 0.052"/></geometry>
-      <material name="scout_dark"/>
-    </visual>
-  </link>
-  <joint name="livox_joint" type="fixed">
-    <parent link="chassis"/><child link="livox_link"/>
-    <origin xyz="0.06 0 0.16" rpy="0 -0.262 0"/>
-  </joint>
-
-  <!-- ═══ Intel RealSense D455 (深度相机, 前方下倾) ═══ -->
-  <link name="realsense_link">
-    <visual>
-      <geometry><box size="0.124 0.026 0.029"/></geometry>
-      <material name="scout_dark"/>
-    </visual>
-  </link>
-  <joint name="realsense_joint" type="fixed">
-    <parent link="chassis"/><child link="realsense_link"/>
-    <origin xyz="${CL/2-0.02} 0 0.08" rpy="0 -0.262 0"/>
-  </joint>
-
-  <!-- ═══ 毫米波雷达 AWR1642 (前方) ═══ -->
-  <link name="radar_link">
-    <visual>
-      <geometry><box size="0.065 0.045 0.012"/></geometry>
-      <material name="scout_dark"/>
-    </visual>
-  </link>
-  <joint name="radar_joint" type="fixed">
-    <parent link="chassis"/><child link="radar_link"/>
-    <origin xyz="${CL/2-0.01} 0 0.065" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ═══ UWB 标签 ═══ -->
-  <link name="uwb_tag">
-    <visual>
-      <geometry><box size="0.025 0.025 0.008"/></geometry>
-      <material name="scout_accent"/>
-    </visual>
-  </link>
-  <joint name="uwb_tag_j" type="fixed">
-    <parent link="chassis"/><child link="uwb_tag"/>
-    <origin xyz="-0.10 0 0.14" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ═══ laser_link (用于 2D LiDAR TF, 与 lidar_link 同位置) ═══ -->
+  <!-- laser_link (TF 兼容) -->
   <link name="laser_link"/>
   <joint name="laser_joint" type="fixed">
     <parent link="lidar_link"/><child link="laser_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- ═══ imu_link ═══ -->
-  <link name="imu_link"/>
-  <joint name="imu_joint" type="fixed">
-    <parent link="chassis"/><child link="imu_link"/>
-    <origin xyz="0.04 0 0.06" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ═══ Gazebo 插件 ═══ -->
-  <gazebo reference="chassis">
-    <material>Gazebo/Blue</material>
-  </gazebo>
-  <gazebo reference="fl_link"><material>Gazebo/Black</material></gazebo>
-  <gazebo reference="fr_link"><material>Gazebo/Black</material></gazebo>
-  <gazebo reference="rl_link"><material>Gazebo/Black</material></gazebo>
-  <gazebo reference="rr_link"><material>Gazebo/Black</material></gazebo>
-
-  <gazebo>
-    <!-- 麦轮驱动 -->
-    <plugin name="scout_mecanum" filename="libgazebo_ros_diff_drive.so">
-      <ros><namespace>scout</namespace></ros>
-      <update_rate>100</update_rate>
-      <left_joint>fl_joint rl_joint</left_joint>
-      <right_joint>fr_joint rr_joint</right_joint>
-      <wheel_separation>${2*BY}</wheel_separation>
-      <wheel_diameter>${2*WR}</wheel_diameter>
-      <max_wheel_torque>5.0</max_wheel_torque>
-      <max_wheel_acceleration>2.0</max_wheel_acceleration>
-      <command_topic>cmd_vel</command_topic>
-      <odometry_topic>odom</odometry_topic>
-      <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_link</robot_base_frame>
-      <publish_odom_tf>true</publish_odom_tf>
-    </plugin>
-
-    <!-- 2D LiDAR -->
-    <plugin name="scout_lidar" filename="libgazebo_ros_ray_sensor.so">
-      <ros><namespace>scout</namespace></ros>
-      <update_rate>10</update_rate>
-      <sensor>
-        <type>ray</type>
-        <pose>0.06 0 0.32 0 0 0</pose>
-        <visualize>false</visualize>
-        <ray>
-          <scan><horizontal>
-            <samples>360</samples><resolution>1</resolution>
-            <min_angle>-3.14159</min_angle><max_angle>3.14159</max_angle>
-          </horizontal></scan>
-          <range><min>0.12</min><max>6.0</max><resolution>0.01</resolution></range>
-          <noise><type>gaussian</type><mean>0.0</mean><stddev>0.012</stddev></noise>
-        </ray>
-      </sensor>
-    </plugin>
-
-    <!-- IMU -->
-    <plugin name="scout_imu" filename="libgazebo_ros_imu_sensor.so">
-      <ros><namespace>scout</namespace></ros>
-      <always_on>true</always_on>
-      <update_rate>200</update_rate>
-      <body_name>chassis</body_name>
-      <topic>imu/data</topic>
-      <gaussian_noise>0.0005</gaussian_noise>
-    </plugin>
-  </gazebo>
+  <!-- Gazebo -->
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/gazebo_plugins.xacro"/>
+  <xacro:gazebo_mecanum namespace="scout"
+    wheel_base="0.320" wheel_separation="0.280" wheel_radius="0.048"/>
 </robot>

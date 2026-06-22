@@ -1,355 +1,44 @@
 <?xml version="1.0"?>
-<robot name="carrier" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <!-- ═══════════════════════════════════════════════════════════
-       Carrier 补给运输机 — 高细节 URDF
-       尺寸基准: 550x400mm 底盘, 12kg, 差速驱动
-       ═══════════════════════════════════════════════════════════ -->
+<!--
+  carrier.urdf.xacro — Carrier 补给运输机
 
-  <xacro:property name="CL" value="0.55"/>
-  <xacro:property name="CW" value="0.40"/>
-  <xacro:property name="CH" value="0.22"/>
-  <xacro:property name="WR" value="0.065"/>
-  <xacro:property name="WW" value="0.035"/>
-  <xacro:property name="WS" value="0.34"/>  <!-- wheel separation -->
-  <xacro:property name="M"  value="12.0"/>
+  特色: 4 槽位物资舱 + 4G 路由器 + 天线
+  尺寸: 550×400mm, 12kg
+-->
+<robot name="carrier" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!-- ── 材质 ── -->
-  <material name="carrier_body"><color rgba="0.10 0.68 0.30 1.0"/></material>
-  <material name="carrier_plate"><color rgba="0.08 0.55 0.24 1.0"/></material>
-  <material name="carrier_dark"><color rgba="0.06 0.06 0.08 1.0"/></material>
-  <material name="carrier_frame"><color rgba="0.20 0.20 0.22 1.0"/></material>
-  <material name="carrier_accent"><color rgba="0.95 0.80 0.10 1.0"/></material>
-  <material name="carrier_tire"><color rgba="0.12 0.12 0.12 1.0"/></material>
-  <material name="carrier_hub"><color rgba="0.50 0.50 0.52 1.0"/></material>
-  <material name="carrier_antenna"><color rgba="0.85 0.85 0.88 1.0"/></material>
-  <material name="carrier_led_front"><color rgba="0.95 0.95 0.85 1.0"/></material>
-  <material name="carrier_led_rear"><color rgba="0.90 0.15 0.10 1.0"/></material>
-  <material name="carrier_supply_slot"><color rgba="0.15 0.15 0.15 1.0"/></material>
-  <material name="carrier_label"><color rgba="0.90 0.90 0.92 1.0"/></material>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/common_properties.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/chassis.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/mecanum_wheel.xacro"/>
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/sensors.xacro"/>
 
-  <!-- ── 底盘主体 ── -->
-  <link name="base_link">
-    <visual>
-      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
-      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
-      <material name="carrier_body"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
-      <geometry><box size="${CL} ${CW} ${CH}"/></geometry>
-    </collision>
-    <inertial>
-      <origin xyz="0 0 ${CH/2}" rpy="0 0 0"/>
-      <mass value="${M}"/>
-      <inertia ixx="0.25" ixy="0" ixz="0" iyy="0.35" iyz="0" izz="0.40"/>
-    </inertial>
-  </link>
+  <!-- 底盘 (更大) -->
+  <xacro:chassis length="0.55" width="0.40" height="0.129" mass="12.0"
+    wheel_radius="0.065" wheel_pos_z="-0.048"
+    mesh_file="package://swarm_bringup/meshes/shared/chassis.dae"
+    body_material="body_green"/>
 
-  <!-- 底盘加强侧裙 -->
-  <link name="skirt_l">
-    <visual>
-      <geometry><box size="${CL*0.9} 0.015 0.08"/></geometry>
-      <material name="carrier_frame"/>
-    </visual>
-  </link>
-  <joint name="skirt_l_j" type="fixed">
-    <parent link="base_link"/><child link="skirt_l"/>
-    <origin xyz="0 ${CW/2+0.006} ${CH*0.3}" rpy="0 0 0"/>
-  </joint>
-  <link name="skirt_r">
-    <visual>
-      <geometry><box size="${CL*0.9} 0.015 0.08"/></geometry>
-      <material name="carrier_frame"/>
-    </visual>
-  </link>
-  <joint name="skirt_r_j" type="fixed">
-    <parent link="base_link"/><child link="skirt_r"/>
-    <origin xyz="0 ${-CW/2-0.006} ${CH*0.3}" rpy="0 0 0"/>
-  </joint>
+  <!-- 麦轮 -->
+  <xacro:mecanum_wheel side="front_left"  radius="0.065" width="0.035"
+    pos_x="0.185" pos_y="0.170" pos_z="-0.048" mass="0.25"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+  <xacro:mecanum_wheel side="front_right" radius="0.065" width="0.035"
+    pos_x="0.185" pos_y="-0.170" pos_z="-0.048" mass="0.25"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+  <xacro:mecanum_wheel side="rear_left"   radius="0.065" width="0.035"
+    pos_x="-0.185" pos_y="0.170" pos_z="-0.048" mass="0.25"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
+  <xacro:mecanum_wheel side="rear_right"  radius="0.065" width="0.035"
+    pos_x="-0.185" pos_y="-0.170" pos_z="-0.048" mass="0.25"
+    mesh_file="package://swarm_bringup/meshes/shared/tire.dae" pi="${pi}"/>
 
-  <!-- 上层平台面板 -->
-  <link name="top_deck">
-    <visual>
-      <geometry><box size="${CL*0.92} ${CW*0.88} 0.018"/></geometry>
-      <material name="carrier_plate"/>
-    </visual>
-  </link>
-  <joint name="top_deck_j" type="fixed">
-    <parent link="base_link"/><child link="top_deck"/>
-    <origin xyz="0.02 0 ${CH+0.009}" rpy="0 0 0"/>
-  </joint>
+  <!-- Carrier 专属 -->
+  <xacro:supply_bay/>
+  <xacro:router_antenna/>
+  <xacro:uwb_tag x="-0.15" y="0" z="0.14"/>
 
-  <!-- ── 前保险杠 (带缓冲胶条) ── -->
-  <link name="front_bumper">
-    <visual>
-      <geometry><box size="0.030 ${CW+0.03} 0.060"/></geometry>
-      <material name="carrier_frame"/>
-    </visual>
-  </link>
-  <joint name="front_bumper_j" type="fixed">
-    <parent link="base_link"/><child link="front_bumper"/>
-    <origin xyz="${CL/2+0.012} 0 ${CH*0.4}" rpy="0 0 0"/>
-  </joint>
-  <link name="front_rubber">
-    <visual>
-      <geometry><box size="0.008 ${CW*0.7} 0.040"/></geometry>
-      <material name="carrier_tire"/>
-    </visual>
-  </link>
-  <joint name="front_rubber_j" type="fixed">
-    <parent link="front_bumper"/><child link="front_rubber"/>
-    <origin xyz="0.018 0 0" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ── 后保险杠 ── -->
-  <link name="rear_bumper">
-    <visual>
-      <geometry><box size="0.025 ${CW*0.85} 0.050"/></geometry>
-      <material name="carrier_frame"/>
-    </visual>
-  </link>
-  <joint name="rear_bumper_j" type="fixed">
-    <parent link="base_link"/><child link="rear_bumper"/>
-    <origin xyz="${-CL/2-0.010} 0 ${CH*0.35}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ── 前大灯 ── -->
-  <xacro:macro name="headlight" params="side y_off">
-    <link name="hl_${side}">
-      <visual>
-        <geometry><cylinder radius="0.015" length="0.010"/></geometry>
-        <material name="carrier_led_front"/>
-      </visual>
-    </link>
-    <joint name="hl_${side}_j" type="fixed">
-      <parent link="front_bumper"/><child link="hl_${side}"/>
-      <origin xyz="0.018 ${y_off} 0" rpy="0 1.5708 0"/>
-    </joint>
-  </xacro:macro>
-  <xacro:headlight side="l" y_off="${CW*0.38}"/>
-  <xacro:headlight side="r" y_off="${-CW*0.38}"/>
-
-  <!-- ── 尾灯 ── -->
-  <xacro:macro name="taillight" params="side y_off">
-    <link name="tl_${side}">
-      <visual>
-        <geometry><box size="0.008 0.025 0.018"/></geometry>
-        <material name="carrier_led_rear"/>
-      </visual>
-    </link>
-    <joint name="tl_${side}_j" type="fixed">
-      <parent link="rear_bumper"/><child link="tl_${side}"/>
-      <origin xyz="-0.014 ${y_off} 0" rpy="0 0 0"/>
-    </joint>
-  </xacro:macro>
-  <xacro:taillight side="l" y_off="${CW*0.32}"/>
-  <xacro:taillight side="r" y_off="${-CW*0.32}"/>
-
-  <!-- ── 物资舱 (4个独立槽位, 可见翻盖) ── -->
-  <xacro:macro name="supply_slot" params="name x y w">
-    <!-- 舱体外壳 -->
-    <link name="bay_${name}">
-      <visual>
-        <geometry><box size="0.12 ${w} 0.10"/></geometry>
-        <material name="carrier_dark"/>
-      </visual>
-      <collision>
-        <geometry><box size="0.12 ${w} 0.10"/></geometry>
-      </collision>
-      <inertial>
-        <mass value="0.5"/>
-        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
-      </inertial>
-    </link>
-    <joint name="bay_${name}_j" type="fixed">
-      <parent link="base_link"/><child link="bay_${name}"/>
-      <origin xyz="${x} ${y} ${CH+0.05}" rpy="0 0 0"/>
-    </joint>
-
-    <!-- 翻盖 (深色盖板) -->
-    <link name="lid_${name}">
-      <visual>
-        <geometry><box size="0.125 ${w+0.005} 0.006"/></geometry>
-        <material name="carrier_supply_slot"/>
-      </visual>
-    </link>
-    <joint name="lid_${name}_j" type="fixed">
-      <parent link="bay_${name}"/><child link="lid_${name}"/>
-      <origin xyz="0 0 0.053" rpy="0 0 0"/>
-    </joint>
-
-    <!-- 标签贴纸 -->
-    <link name="label_${name}">
-      <visual>
-        <geometry><box size="0.04 0.015 0.001"/></geometry>
-        <material name="carrier_label"/>
-      </visual>
-    </link>
-    <joint name="label_${name}_j" type="fixed">
-      <parent link="bay_${name}"/><child link="label_${name}"/>
-      <origin xyz="0 0 0.055" rpy="0 0 0"/>
-    </joint>
-  </xacro:macro>
-
-  <xacro:supply_slot name="water"    x="-0.08" y=" 0.08" w="0.09"/>
-  <xacro:supply_slot name="firstaid" x="-0.08" y="-0.08" w="0.09"/>
-  <xacro:supply_slot name="battery"  x="-0.08" y=" 0.24" w="0.07"/>
-  <xacro:supply_slot name="rope"     x="-0.08" y="-0.24" w="0.07"/>
-
-  <!-- 物资舱框架 (金属外框) -->
-  <link name="bay_frame">
-    <visual>
-      <geometry><box size="0.14 0.56 0.008"/></geometry>
-      <material name="carrier_frame"/>
-    </visual>
-  </link>
-  <joint name="bay_frame_j" type="fixed">
-    <parent link="base_link"/><child link="bay_frame"/>
-    <origin xyz="-0.08 0 ${CH+0.105}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ── 4G 路由器盒 (GL.iNet GL-X3000) ── -->
-  <link name="router_box">
-    <visual>
-      <geometry><box size="0.10 0.08 0.025"/></geometry>
-      <material name="carrier_dark"/>
-    </visual>
-  </link>
-  <joint name="router_box_j" type="fixed">
-    <parent link="base_link"/><child link="router_box"/>
-    <origin xyz="0.12 0 ${CH+0.012}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- 路由器天线1 (SMA, 竖直) -->
-  <link name="ant_sma1">
-    <visual>
-      <geometry><cylinder radius="0.005" length="0.12"/></geometry>
-      <material name="carrier_antenna"/>
-    </visual>
-  </link>
-  <joint name="ant_sma1_j" type="fixed">
-    <parent link="router_box"/><child link="ant_sma1"/>
-    <origin xyz="0.035 0.025 0.075" rpy="0 0 0"/>
-  </joint>
-  <!-- 路由器天线2 -->
-  <link name="ant_sma2">
-    <visual>
-      <geometry><cylinder radius="0.005" length="0.12"/></geometry>
-      <material name="carrier_antenna"/>
-    </visual>
-  </link>
-  <joint name="ant_sma2_j" type="fixed">
-    <parent link="router_box"/><child link="ant_sma2"/>
-    <origin xyz="0.035 -0.025 0.075" rpy="0 0 0"/>
-  </joint>
-
-  <!-- 高增益 4G 鞭状天线 (后部) -->
-  <link name="ant_whip_base">
-    <visual>
-      <geometry><cylinder radius="0.010" length="0.030"/></geometry>
-      <material name="carrier_frame"/>
-    </visual>
-  </link>
-  <joint name="ant_whip_base_j" type="fixed">
-    <parent link="base_link"/><child link="ant_whip_base"/>
-    <origin xyz="${-CL/2+0.06} 0 ${CH+0.015}" rpy="0 0 0"/>
-  </joint>
-  <link name="ant_whip">
-    <visual>
-      <geometry><cylinder radius="0.006" length="0.18"/></geometry>
-      <material name="carrier_antenna"/>
-    </visual>
-  </link>
-  <joint name="ant_whip_j" type="fixed">
-    <parent link="ant_whip_base"/><child link="ant_whip"/>
-    <origin xyz="0 0 0.105" rpy="0 0 0"/>
-  </joint>
-
-  <!-- 鞭状天线顶部弹簧段 -->
-  <link name="ant_whip_tip">
-    <visual>
-      <geometry><cylinder radius="0.004" length="0.04"/></geometry>
-      <material name="carrier_accent"/>
-    </visual>
-  </link>
-  <joint name="ant_whip_tip_j" type="fixed">
-    <parent link="ant_whip"/><child link="ant_whip_tip"/>
-    <origin xyz="0 0 0.10" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ── 驱动轮 (带轮毂和挡泥板) ── -->
-  <xacro:macro name="drive_wheel" params="name x y">
-    <joint name="${name}_joint" type="continuous">
-      <parent link="base_link"/><child link="${name}_link"/>
-      <origin xyz="${x} ${y} -${WR+0.012}" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
-    </joint>
-    <link name="${name}_link">
-      <visual>
-        <geometry><cylinder radius="${WR}" length="${WW}"/></geometry>
-        <material name="carrier_tire"/>
-      </visual>
-      <collision>
-        <geometry><cylinder radius="${WR}" length="${WW}"/></geometry>
-      </collision>
-      <inertial>
-        <mass value="0.25"/>
-        <inertia ixx="0.0003" ixy="0" ixz="0" iyy="0.0003" iyz="0" izz="0.0005"/>
-      </inertial>
-    </link>
-    <!-- 轮毂 -->
-    <link name="${name}_hub">
-      <visual>
-        <geometry><cylinder radius="${WR*0.40}" length="${WW+0.005}"/></geometry>
-        <material name="carrier_hub"/>
-      </visual>
-    </link>
-    <joint name="${name}_hub_j" type="fixed">
-      <parent link="${name}_link"/><child link="${name}_hub"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
-    <!-- 悬臂 -->
-    <link name="${name}_arm">
-      <visual>
-        <geometry><box size="0.020 0.018 ${WR*1.6}"/></geometry>
-        <material name="carrier_frame"/>
-      </visual>
-    </link>
-    <joint name="${name}_arm_j" type="fixed">
-      <parent link="base_link"/><child link="${name}_arm"/>
-      <origin xyz="${x} ${y} -${WR*0.4}" rpy="0 0 0"/>
-    </joint>
-  </xacro:macro>
-
-  <xacro:drive_wheel name="fl" x="${CL/3}"  y="${WS/2}"/>
-  <xacro:drive_wheel name="fr" x="${CL/3}"  y="${-WS/2}"/>
-  <xacro:drive_wheel name="rl" x="${-CL/3}" y="${WS/2}"/>
-  <xacro:drive_wheel name="rr" x="${-CL/3}" y="${-WS/2}"/>
-
-  <!-- ── Gazebo 材质 & 插件 ── -->
-  <gazebo reference="base_link"><material>Gazebo/Green</material></gazebo>
-  <gazebo reference="carrier_tire"><material>Gazebo/Black</material></gazebo>
-
-  <gazebo>
-    <plugin name="carrier_drive" filename="libgazebo_ros_diff_drive.so">
-      <ros><namespace>carrier</namespace></ros>
-      <update_rate>50</update_rate>
-      <left_joint>fl_joint rl_joint</left_joint>
-      <right_joint>fr_joint rr_joint</right_joint>
-      <wheel_separation>${WS}</wheel_separation>
-      <wheel_diameter>${2*WR}</wheel_diameter>
-      <max_wheel_torque>12.0</max_wheel_torque>
-      <max_wheel_acceleration>1.5</max_wheel_acceleration>
-      <command_topic>cmd_vel</command_topic>
-      <odometry_topic>odom</odometry_topic>
-      <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_link</robot_base_frame>
-    </plugin>
-    <plugin name="carrier_imu" filename="libgazebo_ros_imu_sensor.so">
-      <ros><namespace>carrier</namespace></ros>
-      <update_rate>100</update_rate>
-      <body_name>base_link</body_name>
-      <topic>imu/data</topic>
-    </plugin>
-  </gazebo>
+  <!-- Gazebo -->
+  <xacro:include filename="$(find swarm_bringup)/urdf/common/gazebo_plugins.xacro"/>
+  <xacro:gazebo_mecanum namespace="carrier"
+    wheel_base="0.370" wheel_separation="0.340" wheel_radius="0.065"/>
 </robot>
