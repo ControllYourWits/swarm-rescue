@@ -48,5 +48,6 @@ setup(
     zip_safe=True,
     entry_points={"console_scripts": [
         "sim_swarm_node = swarm_bringup.sim_swarm_node:main",
+        "lifecycle_manager = swarm_bringup.lifecycle_manager:main",
     ]},
 )

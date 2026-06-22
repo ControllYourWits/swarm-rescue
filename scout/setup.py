@@ -18,4 +18,6 @@ setup(name=package_name, version="1.0.0",
         "life_map_node  = scout.nodes.life_map_node:main",
         "rl_nav_node    = scout.nodes.rl_nav_node:main",
         "nav2_goal_bridge = scout.nodes.nav2_goal_bridge:main",
+        "terrain_analysis = scout.nodes.terrain_analysis:main",
+        "disaster_recovery = scout.nodes.disaster_recovery:main",
     ]})
