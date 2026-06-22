@@ -43,21 +43,36 @@ class ScoutBridge(Node):
         self.create_timer(0.1, self._timeout_cb)
         self.create_timer(2.0, self._watchdog_cb)
         self._state_machine = RobotStateMachine("scout", self)
+
+    def _heartbeat_cb(self):
+        try:
+            self._ser.write(make_heartbeat())
+        except Exception:
+            pass
         threading.Thread(target=self._rx, daemon=True).start()
         self.get_logger().info(f"Scout bridge {port}@{baud}")
 
     def _cmd_cb(self, msg):
-        self._ser.write(make_cmd_vel(msg.linear.x, msg.linear.y, msg.angular.z))
+        try:
+            self._ser.write(make_cmd_vel(msg.linear.x, msg.linear.y, msg.angular.z))
+        except Exception:
+            pass
         self._last_cmd = self.get_clock().now()
 
     def _mode_cb(self, msg):
         m = {"stop":ChassisMode.STOP,"normal":ChassisMode.NORMAL,
              "emergency":ChassisMode.EMERGENCY}
-        self._ser.write(make_set_mode(m.get(msg.data.lower(), ChassisMode.STOP)))
+        try:
+            self._ser.write(make_set_mode(m.get(msg.data.lower(), ChassisMode.STOP)))
+        except Exception:
+            pass
 
     def _timeout_cb(self):
         if (self.get_clock().now()-self._last_cmd).nanoseconds*1e-9 > self._to:
-            self._ser.write(make_set_mode(ChassisMode.STOP))
+            try:
+                self._ser.write(make_set_mode(ChassisMode.STOP))
+            except Exception:
+                pass
 
     def _watchdog_cb(self):
         elapsed = time.time() - self._last_rx

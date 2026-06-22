@@ -38,7 +38,7 @@ class CarrierBridge(Node):
         self.create_subscription(String, "/carrier/supply_cmd", self._supply_cb, 10)
         self.create_subscription(String, "/carrier/set_mode",   self._mode_cb,   10)
 
-        self.create_timer(1.0, lambda: self._ser.write(make_heartbeat()))
+        self.create_timer(1.0, self._heartbeat_cb)
         self.create_timer(0.1, self._timeout_cb)
         self.create_timer(2.0, self._watchdog_cb)
         self._state_machine = RobotStateMachine("carrier", self)
@@ -46,7 +46,10 @@ class CarrierBridge(Node):
         self.get_logger().info(f"Carrier bridge {port}@{baud}")
 
     def _cmd_cb(self, msg):
-        self._ser.write(make_cmd_vel(msg.linear.x, msg.linear.y, msg.angular.z))
+        try:
+            self._ser.write(make_cmd_vel(msg.linear.x, msg.linear.y, msg.angular.z))
+        except Exception:
+            pass
         self._last_cmd = self.get_clock().now()
 
     def _supply_cb(self, msg):
@@ -55,17 +58,26 @@ class CarrierBridge(Node):
         actions = {"open":1,"close":0,"throw":2}
         action = actions.get(parts[0].lower(), 0)
         slot   = int(parts[1]) if len(parts)>1 else 0
-        self._ser.write(make_supply_cmd(action, slot))
+        try:
+            self._ser.write(make_supply_cmd(action, slot))
+        except Exception:
+            pass
 
     def _mode_cb(self, msg):
         m = {"stop":ChassisMode.STOP,"normal":ChassisMode.NORMAL,
              "follow":ChassisMode.FOLLOW,"emergency":ChassisMode.EMERGENCY}
-        self._ser.write(make_set_mode(m.get(msg.data.lower(), ChassisMode.STOP)))
+        try:
+            self._ser.write(make_set_mode(m.get(msg.data.lower(), ChassisMode.STOP)))
+        except Exception:
+            pass
 
     def _timeout_cb(self):
         elapsed = (self.get_clock().now()-self._last_cmd).nanoseconds*1e-9
         if elapsed > 0.8:
-            self._ser.write(make_set_mode(ChassisMode.STOP))
+            try:
+                self._ser.write(make_set_mode(ChassisMode.STOP))
+            except Exception:
+                pass
 
     def _watchdog_cb(self):
         elapsed = time.time() - self._last_rx

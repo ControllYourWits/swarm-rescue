@@ -43,7 +43,7 @@ class SpecialistBridge(Node):
         self.create_subscription(String, "/specialist/set_mode",
                                  self._mode_cb, 10)
 
-        self.create_timer(1.0, lambda: self._ser.write(make_heartbeat()))
+        self.create_timer(1.0, self._heartbeat_cb)
         self.create_timer(0.1, self._timeout_cb)
         self.create_timer(2.0, self._watchdog_cb)
         self._state_machine = RobotStateMachine("specialist", self)
@@ -51,14 +51,20 @@ class SpecialistBridge(Node):
         self.get_logger().info(f"Specialist bridge {port}@{baud}")
 
     def _cmd_cb(self, msg):
-        self._ser.write(make_cmd_vel(msg.linear.x, msg.linear.y, msg.angular.z))
+        try:
+            self._ser.write(make_cmd_vel(msg.linear.x, msg.linear.y, msg.angular.z))
+        except Exception:
+            pass
         self._last_cmd = self.get_clock().now()
 
     def _arm_cb(self, msg):
         # data: [j0, j1, j2, gripper]
         joints  = list(msg.data[:3]) if len(msg.data) >= 3 else [90.0,10.0,10.0]
         gripper = int(msg.data[3]) if len(msg.data) >= 4 else 0
-        self._ser.write(make_arm_cmd(joints, gripper))
+        try:
+            self._ser.write(make_arm_cmd(joints, gripper))
+        except Exception:
+            pass
 
     def _led_cb(self, msg):
         # format: "mode:brightness:r:g:b"  e.g. "1:255:255:255:255"
@@ -69,18 +75,27 @@ class SpecialistBridge(Node):
             r    = parts[2] if len(parts)>2 else 255
             g    = parts[3] if len(parts)>3 else 255
             b    = parts[4] if len(parts)>4 else 255
-            self._ser.write(make_led_cmd(mode, brt, r, g, b))
+            try:
+                self._ser.write(make_led_cmd(mode, brt, r, g, b))
+            except Exception:
+                pass
         except Exception as e:
             self.get_logger().warn(f"LED cmd parse error: {e}")
 
     def _mode_cb(self, msg):
         m = {"stop":ChassisMode.STOP,"normal":ChassisMode.NORMAL,
              "emergency":ChassisMode.EMERGENCY}
-        self._ser.write(make_set_mode(m.get(msg.data.lower(), ChassisMode.STOP)))
+        try:
+            self._ser.write(make_set_mode(m.get(msg.data.lower(), ChassisMode.STOP)))
+        except Exception:
+            pass
 
     def _timeout_cb(self):
         if (self.get_clock().now()-self._last_cmd).nanoseconds*1e-9 > 0.8:
-            self._ser.write(make_set_mode(ChassisMode.STOP))
+            try:
+                self._ser.write(make_set_mode(ChassisMode.STOP))
+            except Exception:
+                pass
 
     def _watchdog_cb(self):
         elapsed = time.time() - self._last_rx

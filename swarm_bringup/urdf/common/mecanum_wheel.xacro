@@ -33,12 +33,13 @@
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <mass value="${mass}"/>
+        <!-- 圆柱体惯性矩: ixx=iyy=(1/12)*m*(3r^2+h^2), izz=(1/2)*m*r^2 -->
         <inertia
-          ixx="${(2/5) * mass * (radius * radius)}"
+          ixx="${(1/12) * mass * (3 * radius * radius + width * width)}"
           ixy="0" ixz="0"
-          iyy="${(2/5) * mass * (radius * radius)}"
+          iyy="${(1/12) * mass * (3 * radius * radius + width * width)}"
           iyz="0"
-          izz="${(2/5) * mass * (radius * radius)}"/>
+          izz="${(1/2) * mass * (radius * radius)}"/>
       </inertial>
     </link>
 
